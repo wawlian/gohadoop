@@ -6,8 +6,11 @@ import (
   "log"
   "net"
   "strconv"
+  "os/user"
+  "code.google.com/p/goprotobuf/proto"
   "github.com/nu7hatch/gouuid"
   "github.com/gohadooprpc"
+  "github.com/gohadooprpc/hadoop_common"
 )
 
 type Client struct {
@@ -43,7 +46,7 @@ func getServerAddr (c *Client) (string) {
 func getConnection (c *Client) (connection, error) {
   con, err := setupConnection(c)
   writeConnectionHeader(con)
-  writeConnectionContext(con)
+  writeConnectionContext(c, con)
   return con, err
 }
 
@@ -56,6 +59,8 @@ func setupConnection (c *Client) (connection, error) {
   } else {
     log.Println("Successfully connected ", c)
   }
+
+  // TODO: Ping thread
 
   // Set tcp no-delay
   tcpConn.SetNoDelay(c.TCPNoDelay)
@@ -100,6 +105,74 @@ func writeConnectionHeader (conn connection) (error) {
   return nil 
 }
 
-func writeConnectionContext (conn connection) (error) {
+func writeConnectionContext (c *Client, conn connection) (error) {
+  
+  // Figure the current user-name
+  var username string
+  if user, err := user.Current(); err != nil {
+    log.Fatal("user.Current", err)
+    return err
+  } else {
+    username = user.Username
+  }
+  userProto := hadoop_common.UserInformationProto{EffectiveUser: &username, RealUser: &username}
+
+  // Create hadoop_common.IpcConnectionContextProto
+  protocolName := "org.apache.hadoop.yarn.api.ApplicationClientProtocolPB"
+  ipcCtxProto := hadoop_common.IpcConnectionContextProto{UserInfo: &userProto, Protocol: &protocolName}
+
+  // Create RpcRequestHeaderProto
+  var callId uint32 = 4294967293 // TODO: HADOOP-9944
+  var rpcKind hadoop_common.RpcKindProto = hadoop_common.RpcKindProto_RPC_PROTOCOL_BUFFER
+  var rpcOperation hadoop_common.RpcRequestHeaderProto_OperationProto = hadoop_common.RpcRequestHeaderProto_RPC_FINAL_PACKET
+  var retryCount int32 = hadoop_common.Default_RpcRequestHeaderProto_RetryCount;
+  var clientId [16]byte = [16]byte(*c.ClientId)
+  rpcReqHeaderProto := hadoop_common.RpcRequestHeaderProto {RpcKind: &rpcKind, RpcOp: &rpcOperation, CallId: &callId, ClientId: clientId[0:16], RetryCount: &retryCount}
+
+
+  // Now create IpcRpcRequestHeaderProto
+  ipcRpcHeaderProto := hadoop_common.IpcRpcRequestHeaderProto{IpcConnectionContext: &ipcCtxProto, RpcRequestHeader: &rpcReqHeaderProto} 
+  if ipcRpcHeaderProtoBytes, err := proto.Marshal(&ipcRpcHeaderProto); err != nil {
+    log.Fatal("proto.Marshal(ipcRpcHeaderProto)", err)
+    return err
+  } else if _, err := conn.con.Write(ipcRpcHeaderProtoBytes); err != nil {
+    log.Fatal("conn.Write ipcRpcHeaderProtoBytes", err)
+    return err
+  }
+
+  log.Println("Success...")
+/*
+  // Now send len(ipcCtxProto+rpcReqHeaderProto)
+  // followed by ipcCtxProto, rpcReqHeaderProto
+  ipcCtxProtoBytes, err := proto.Marshal(&ipcCtxProto); 
+  if err != nil {
+    log.Fatal("proto.Marshal(ipcCtxProto)", err)
+    return err
+  } 
+  
+  rpcReqHeaderProtoBytes, err := proto.Marshal(&rpcReqHeaderProto)
+  if err != nil {
+    log.Fatal("proto.Marshal(rpcReqHeaderProto)", err)
+    return err
+  } 
+
+  totalLength := len(ipcCtxProtoBytes) + proto.sizeVarint(len(ipcCtxProtoBytes)) + len(rpcReqHeaderProtoBytes) + proto.sizeVarint(len(rpcReqHeaderProtoBytes))
+  if totalLengthBytes, err := gohadooprpc.ConvertFixedToBytes(totalLength); err != nil {
+    log.Fatal("WTF binary.Write totalLength", err)
+    return err
+  } else if _, err := conn.con.Write(totalLengthBytes); err != nil {
+    log.Fatal("conn.Write totalLengthBytes", err)
+    return err
+  }
+
+  if _, err := conn.con.Write(ipcCtxProtoBytes); err != nil {
+    log.Fatal("conn.con.Write(ipcCtxProtoBytes)", err)
+    return err
+  }
+  if _, err := conn.con.Write(rpcReqHeaderProtoBytes); err != nil {
+    log.Fatal("conn.con.Write(rpcReqHeaderProtoBytes)", err)
+    return err
+  }
+*/  
   return nil
 }

@@ -1,0 +1,10 @@
+package hadoop.common;
+
+import "IpcConnectionContext.proto";
+import "RpcHeader.proto";
+
+message IpcRpcRequestHeaderProto {
+  optional IpcConnectionContextProto ipcConnectionContext = 1;
+  optional RpcRequestHeaderProto rpcRequestHeader = 2;
+}
+
