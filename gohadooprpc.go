@@ -6,15 +6,15 @@ import (
 )
 
 var RPC_HEADER []byte = []byte("hrpc") 
-var VERSION []byte = []byte {9} 
-var RPC_SERVICE_CLASS int32 = 1
+var VERSION []byte = []byte {0x09} 
+var RPC_SERVICE_CLASS byte = 0x00 
 
 type AuthMethod byte
 const (
-  AUTH_SIMPLE AuthMethod = 80
-  AUTH_KERBEROS AuthMethod = 81
-  AUTH_TOKEN AuthMethod = 82
-  AUTH_PLAIN AuthMethod = 83
+  AUTH_SIMPLE AuthMethod = 0x50
+  AUTH_KERBEROS AuthMethod = 0x51
+  AUTH_TOKEN AuthMethod = 0x52
+  AUTH_PLAIN AuthMethod = 0x53
 )
 func (authmethod AuthMethod) String() string {
   switch {
@@ -30,10 +30,10 @@ func (authmethod AuthMethod) String() string {
   return "ERROR-UNKNOWN"
 }
 
-type AuthProtocol int32 
+type AuthProtocol byte 
 const (
-  AUTH_PROTOCOL_NONE AuthProtocol = 0
-  AUTH_PROTOCOL_SASL AuthProtocol = -33
+  AUTH_PROTOCOL_NONE AuthProtocol = 0x00
+  AUTH_PROTOCOL_SASL AuthProtocol = 0xDF 
 )
 func (authprotocol AuthProtocol) String() string {
   switch {
@@ -50,3 +50,4 @@ func ConvertFixedToBytes (data interface{}) ([]byte, error) {
   err := binary.Write(buf, binary.BigEndian, data)
   return buf.Bytes(), err
 }
+

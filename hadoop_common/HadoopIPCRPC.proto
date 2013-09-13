@@ -4,7 +4,7 @@ import "IpcConnectionContext.proto";
 import "RpcHeader.proto";
 
 message IpcRpcRequestHeaderProto {
-  optional IpcConnectionContextProto ipcConnectionContext = 1;
-  optional RpcRequestHeaderProto rpcRequestHeader = 2;
+  optional RpcRequestHeaderProto rpcRequestHeader = 1;
+  optional IpcConnectionContextProto ipcConnectionContext = 2;
 }
 

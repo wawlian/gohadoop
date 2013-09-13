@@ -14,8 +14,8 @@ var _ = &json.SyntaxError{}
 var _ = math.Inf
 
 type IpcRpcRequestHeaderProto struct {
-	IpcConnectionContext *IpcConnectionContextProto `protobuf:"bytes,1,opt,name=ipcConnectionContext" json:"ipcConnectionContext,omitempty"`
-	RpcRequestHeader     *RpcRequestHeaderProto     `protobuf:"bytes,2,opt,name=rpcRequestHeader" json:"rpcRequestHeader,omitempty"`
+	RpcRequestHeader     *RpcRequestHeaderProto     `protobuf:"bytes,1,opt,name=rpcRequestHeader" json:"rpcRequestHeader,omitempty"`
+	IpcConnectionContext *IpcConnectionContextProto `protobuf:"bytes,2,opt,name=ipcConnectionContext" json:"ipcConnectionContext,omitempty"`
 	XXX_unrecognized     []byte                     `json:"-"`
 }
 
@@ -23,16 +23,16 @@ func (m *IpcRpcRequestHeaderProto) Reset()         { *m = IpcRpcRequestHeaderPro
 func (m *IpcRpcRequestHeaderProto) String() string { return proto.CompactTextString(m) }
 func (*IpcRpcRequestHeaderProto) ProtoMessage()    {}
 
-func (m *IpcRpcRequestHeaderProto) GetIpcConnectionContext() *IpcConnectionContextProto {
+func (m *IpcRpcRequestHeaderProto) GetRpcRequestHeader() *RpcRequestHeaderProto {
 	if m != nil {
-		return m.IpcConnectionContext
+		return m.RpcRequestHeader
 	}
 	return nil
 }
 
-func (m *IpcRpcRequestHeaderProto) GetRpcRequestHeader() *RpcRequestHeaderProto {
+func (m *IpcRpcRequestHeaderProto) GetIpcConnectionContext() *IpcConnectionContextProto {
 	if m != nil {
-		return m.RpcRequestHeader
+		return m.IpcConnectionContext
 	}
 	return nil
 }

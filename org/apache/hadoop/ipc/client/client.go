@@ -70,19 +70,16 @@ func setupConnection (c *Client) (connection, error) {
 
 func writeConnectionHeader (conn connection) (error) {
   // RPC_HEADER
-  log.Println("conn.Write: ", gohadooprpc.RPC_HEADER)
   if _, err := conn.con.Write(gohadooprpc.RPC_HEADER); err != nil {
-    log.Fatal("conn.Write", err)
+    log.Fatal("conn.Write gohadooprpc.RPC_HEADER", err)
     return err
-  }
-  
+  } 
 
   // RPC_VERSION
-  log.Println("conn.Write: ", gohadooprpc.RPC_HEADER)
   if _, err := conn.con.Write(gohadooprpc.VERSION); err != nil {
-    log.Fatal("conn.Write", err)
+    log.Fatal("conn.Write gohadooprpc.VERSION", err)
     return err
-  }
+  } 
 
   // RPC_SERVICE_CLASS
   if serviceClass, err := gohadooprpc.ConvertFixedToBytes(gohadooprpc.RPC_SERVICE_CLASS); err != nil {
@@ -98,7 +95,7 @@ func writeConnectionHeader (conn connection) (error) {
     log.Fatal("WTF AUTH_PROTOCOL_NONE", err)
     return err
   } else if _, err := conn.con.Write(authProtocol); err != nil {
-    log.Fatal("conn.Write RPC_SERVICE_CLASS", err)
+    log.Fatal("conn.Write gohadooprpc.AUTH_PROTOCOL_NONE", err)
     return err
   }
 
@@ -106,7 +103,6 @@ func writeConnectionHeader (conn connection) (error) {
 }
 
 func writeConnectionContext (c *Client, conn connection) (error) {
-  
   // Figure the current user-name
   var username string
   if user, err := user.Current(); err != nil {
@@ -115,12 +111,13 @@ func writeConnectionContext (c *Client, conn connection) (error) {
   } else {
     username = user.Username
   }
-  userProto := hadoop_common.UserInformationProto{EffectiveUser: &username, RealUser: &username}
+  log.Println("username = " + username)
+  userProto := hadoop_common.UserInformationProto{EffectiveUser: nil, RealUser: &username}
 
   // Create hadoop_common.IpcConnectionContextProto
   protocolName := "org.apache.hadoop.yarn.api.ApplicationClientProtocolPB"
   ipcCtxProto := hadoop_common.IpcConnectionContextProto{UserInfo: &userProto, Protocol: &protocolName}
-
+  
   // Create RpcRequestHeaderProto
   var callId uint32 = 4294967293 // TODO: HADOOP-9944
   var rpcKind hadoop_common.RpcKindProto = hadoop_common.RpcKindProto_RPC_PROTOCOL_BUFFER
@@ -129,50 +126,73 @@ func writeConnectionContext (c *Client, conn connection) (error) {
   var clientId [16]byte = [16]byte(*c.ClientId)
   rpcReqHeaderProto := hadoop_common.RpcRequestHeaderProto {RpcKind: &rpcKind, RpcOp: &rpcOperation, CallId: &callId, ClientId: clientId[0:16], RetryCount: &retryCount}
 
+  rpcReqHeaderProtoBytes, err := proto.Marshal(&rpcReqHeaderProto)
+  if err != nil {
+    log.Fatal("proto.Marshal(&rpcReqHeaderProto)", err)
+    return err
+  }
+  log.Println("XXX rpcReqHeaderProtoBytes: ", len(rpcReqHeaderProtoBytes))
 
+  ipcCtxProtoBytes, _ := proto.Marshal(&ipcCtxProto)
+  if err != nil {
+    log.Fatal("proto.Marshal(&ipcCtxProto)", err)
+    return err
+  }
+  log.Println("XXX ipcCtxProtoBytes: ", len(ipcCtxProtoBytes))
+
+/*
   // Now create IpcRpcRequestHeaderProto
   ipcRpcHeaderProto := hadoop_common.IpcRpcRequestHeaderProto{IpcConnectionContext: &ipcCtxProto, RpcRequestHeader: &rpcReqHeaderProto} 
-  if ipcRpcHeaderProtoBytes, err := proto.Marshal(&ipcRpcHeaderProto); err != nil {
+  ipcRpcHeaderProtoBytes, err := proto.Marshal(&ipcRpcHeaderProto); 
+  if err != nil {
     log.Fatal("proto.Marshal(ipcRpcHeaderProto)", err)
     return err
   } else if _, err := conn.con.Write(ipcRpcHeaderProtoBytes); err != nil {
     log.Fatal("conn.Write ipcRpcHeaderProtoBytes", err)
     return err
   }
+    log.Println("Sent #bytes: ", len(ipcRpcHeaderProtoBytes))
 
-  log.Println("Success...")
-/*
-  // Now send len(ipcCtxProto+rpcReqHeaderProto)
-  // followed by ipcCtxProto, rpcReqHeaderProto
-  ipcCtxProtoBytes, err := proto.Marshal(&ipcCtxProto); 
-  if err != nil {
-    log.Fatal("proto.Marshal(ipcCtxProto)", err)
-    return err
-  } 
-  
-  rpcReqHeaderProtoBytes, err := proto.Marshal(&rpcReqHeaderProto)
-  if err != nil {
-    log.Fatal("proto.Marshal(rpcReqHeaderProto)", err)
-    return err
-  } 
+  log.Println("Success... sent IpcRpcRequestHeaderProto")
+*/
 
-  totalLength := len(ipcCtxProtoBytes) + proto.sizeVarint(len(ipcCtxProtoBytes)) + len(rpcReqHeaderProtoBytes) + proto.sizeVarint(len(rpcReqHeaderProtoBytes))
-  if totalLengthBytes, err := gohadooprpc.ConvertFixedToBytes(totalLength); err != nil {
-    log.Fatal("WTF binary.Write totalLength", err)
+  totalLength := len(rpcReqHeaderProtoBytes) + sizeVarint(len(rpcReqHeaderProtoBytes)) + len(ipcCtxProtoBytes) + sizeVarint(len(ipcCtxProtoBytes))
+  var tLen int32 = int32(totalLength)
+  if totalLengthBytes, err := gohadooprpc.ConvertFixedToBytes(tLen); err != nil {
+    log.Fatal("ConvertFixedToBytes(totalLength)", err)
     return err
-  } else if _, err := conn.con.Write(totalLengthBytes); err != nil {
-    log.Fatal("conn.Write totalLengthBytes", err)
-    return err
+  } else {
+    if wbytes, err := conn.con.Write(totalLengthBytes); err != nil {
+      log.Fatal("conn.con.Write(totalLengthBytes)", err)
+      return err
+    } else {
+      log.Println("conn.con.Write(totalLengthBytes) = ", totalLengthBytes)
+      log.Println("conn.con.Write(totalLengthBytes) = ", wbytes)
+      log.Println("conn.con.Write() totalLength = ", totalLength)
+      //log.Fatal("conn.con.Write(totalLengthBytes) = ", wbytes)
+    }
   }
 
-  if _, err := conn.con.Write(ipcCtxProtoBytes); err != nil {
-    log.Fatal("conn.con.Write(ipcCtxProtoBytes)", err)
-    return err
-  }
-  if _, err := conn.con.Write(rpcReqHeaderProtoBytes); err != nil {
-    log.Fatal("conn.con.Write(rpcReqHeaderProtoBytes)", err)
-    return err
-  }
-*/  
+  log.Println("About to write rpcReqHeaderProtoBytes: ", len(rpcReqHeaderProtoBytes))
+  conn.con.Write(proto.EncodeVarint(uint64(len(rpcReqHeaderProtoBytes))))
+  conn.con.Write(rpcReqHeaderProtoBytes)
+  log.Println("Wrote rpcReqHeaderProtoBytes: ", len(rpcReqHeaderProtoBytes))
+  log.Println("About to write ipcCtxProtoBytes: ", len(ipcCtxProtoBytes))
+  conn.con.Write(proto.EncodeVarint(uint64(len(ipcCtxProtoBytes))))
+  conn.con.Write(ipcCtxProtoBytes)
+  log.Println("Wrote ipcCtxProtoBytes: ", len(ipcCtxProtoBytes))
+
   return nil
 }
+
+func sizeVarint(x int) (n int) {
+  for {
+    n++
+    x >>= 7
+    if x == 0 {
+      break
+    }
+  }
+  return n
+}
+
