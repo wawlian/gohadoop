@@ -7,7 +7,7 @@ package hadoop_yarn
 import proto "code.google.com/p/goprotobuf/proto"
 import json "encoding/json"
 import math "math"
-import hadoop_common "Security.pb"
+import hadoop_common "github.com/gohadooprpc/hadoop_common"
 
 // Reference proto, json, and math imports to suppress error if they are not otherwise used.
 var _ = proto.Marshal
@@ -412,8 +412,9 @@ func (m *GetClusterMetricsResponseProto) GetClusterMetrics() *YarnClusterMetrics
 }
 
 type GetApplicationsRequestProto struct {
-	ApplicationTypes []string `protobuf:"bytes,1,rep,name=application_types" json:"application_types,omitempty"`
-	XXX_unrecognized []byte   `json:"-"`
+	ApplicationTypes  []string                    `protobuf:"bytes,1,rep,name=application_types" json:"application_types,omitempty"`
+	ApplicationStates []YarnApplicationStateProto `protobuf:"varint,2,rep,name=application_states,enum=hadoop.yarn.YarnApplicationStateProto" json:"application_states,omitempty"`
+	XXX_unrecognized  []byte                      `json:"-"`
 }
 
 func (m *GetApplicationsRequestProto) Reset()         { *m = GetApplicationsRequestProto{} }
@@ -423,6 +424,13 @@ func (*GetApplicationsRequestProto) ProtoMessage()    {}
 func (m *GetApplicationsRequestProto) GetApplicationTypes() []string {
 	if m != nil {
 		return m.ApplicationTypes
+	}
+	return nil
+}
+
+func (m *GetApplicationsRequestProto) GetApplicationStates() []YarnApplicationStateProto {
+	if m != nil {
+		return m.ApplicationStates
 	}
 	return nil
 }

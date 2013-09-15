@@ -123,6 +123,7 @@ message GetClusterMetricsResponseProto {
 
 message GetApplicationsRequestProto {
   repeated string application_types = 1;
+  repeated YarnApplicationStateProto application_states = 2;
 }
 
 message GetApplicationsResponseProto {

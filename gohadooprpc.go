@@ -3,11 +3,16 @@ package gohadooprpc
 import (
   "bytes"
   "encoding/binary"
+  "github.com/gohadooprpc/hadoop_common"
 )
 
 var RPC_HEADER []byte = []byte("hrpc") 
 var VERSION []byte = []byte {0x09} 
 var RPC_SERVICE_CLASS byte = 0x00 
+
+var RPC_PROTOCOL_BUFFFER hadoop_common.RpcKindProto = hadoop_common.RpcKindProto_RPC_PROTOCOL_BUFFER
+var RPC_FINAL_PACKET hadoop_common.RpcRequestHeaderProto_OperationProto = hadoop_common.RpcRequestHeaderProto_RPC_FINAL_PACKET
+var RPC_DEFAULT_RETRY_COUNT int32 = hadoop_common.Default_RpcRequestHeaderProto_RetryCount
 
 type AuthMethod byte
 const (
