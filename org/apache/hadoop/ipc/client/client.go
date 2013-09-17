@@ -60,6 +60,7 @@ func (c *Client) Call (rpc proto.Message, rpcRequest proto.Message, rpcResponse 
 
   // Read & return response
   err = c.readResponse(conn, &rpcCall)
+
   return err
 }
 
@@ -280,7 +281,6 @@ func (c *Client) readResponse (conn *connection, rpcCall *call) (error) {
     log.Fatal("gohadooprpc.ConvertBytesToFixed(totalLengthBytes, &totalLength)", err)
     return err
   }
-  log.Println("totalLength = ", totalLength)
 
   var responseBytes []byte = make([]byte, totalLength)
   if _, err := conn.con.Read(responseBytes); err != nil {
@@ -295,8 +295,7 @@ func (c *Client) readResponse (conn *connection, rpcCall *call) (error) {
     log.Fatal("readDelimited(responseBytes, rpcResponseHeaderProto)", err)
     return err
   }
-  log.Println("Recieved rpcResponseHeaderProto = ", rpcResponseHeaderProto)
-  log.Println("XXX off = ", off)
+  log.Println("Received rpcResponseHeaderProto = ", rpcResponseHeaderProto)
 
   err = c.checkRpcHeader(&rpcResponseHeaderProto)
   if err != nil {
@@ -305,9 +304,7 @@ func (c *Client) readResponse (conn *connection, rpcCall *call) (error) {
   }
 
   // Parse RpcResponseWrapper
-  soff, err := readDelimited(responseBytes[off:], rpcCall.response)
-  log.Println("XXX off = ", off)
-  log.Println("XXX soff = ", soff)
+  _, err = readDelimited(responseBytes[off:], rpcCall.response)
   return err
 }
 
@@ -319,10 +316,9 @@ func readDelimited (rawData []byte, msg proto.Message) (int, error) {
   }
   err := proto.Unmarshal(rawData[off:headerLength+1], msg) // headerLength+1 for the slice
   if (err != nil) {
-    log.Fatal("XXX proto.Unmarshal(rawData[off:headerLength+1]) ", err)
+    log.Fatal("proto.Unmarshal(rawData[off:headerLength+1]) ", err)
     return -1, err
   }
-  log.Println("readDelimited ", msg)
 
   return off+int(headerLength), nil
 }
@@ -336,7 +332,6 @@ func (c *Client) checkRpcHeader (rpcResponseHeaderProto *hadoop_common.RpcRespon
       return errors.New("Incorrect clientId")
     }
   }
-  log.Println("Successfully finished checkRpcHeader")
   return nil
 }
 
