@@ -243,6 +243,9 @@ func sendRequest (c *Client, conn *connection, rpcCall *call) (error) {
     log.Fatal("writeDelimitedBytes(conn, paramProtoBytes)", err)
     return err
   }
+
+  log.Println("Succesfully sent request of length: ", totalLength)
+
   return nil
 }
 
