@@ -27,6 +27,7 @@ type connection struct {
 
 type call struct {
   callId uint32  // TODO HADOOP-9944 
+  procedure proto.Message
   request proto.Message
   response proto.Message
   err *error
@@ -41,7 +42,7 @@ func (c *Client) String() (string) {
   return buf.String()
 }
 
-func (c *Client) Call (rpcRequest proto.Message, rpcResponse proto.Message) (error) {
+func (c *Client) Call (rpc proto.Message, rpcRequest proto.Message, rpcResponse proto.Message) (error) {
   // Get connection to server
   log.Println("Connecting...", c)
   conn, err := getConnection(c)
@@ -50,7 +51,7 @@ func (c *Client) Call (rpcRequest proto.Message, rpcResponse proto.Message) (err
   }
   
   // Create call and send request
-  rpcCall := call{callId: 0, request: rpcRequest, response: rpcResponse}
+  rpcCall := call{callId: 0, procedure: rpc, request: rpcRequest, response: rpcResponse}
   err = sendRequest(c, conn, &rpcCall)
   if (err != nil) {
     log.Fatal("sendRequest", err)
@@ -106,7 +107,7 @@ func writeConnectionHeader (conn *connection) (error) {
 
   // RPC_SERVICE_CLASS
   if serviceClass, err := gohadooprpc.ConvertFixedToBytes(gohadooprpc.RPC_SERVICE_CLASS); err != nil {
-    log.Fatal("WTF binary.Write", err)
+    log.Fatal("binary.Write", err)
     return err
   } else if _, err := conn.con.Write(serviceClass); err != nil {
     log.Fatal("conn.Write RPC_SERVICE_CLASS", err)
@@ -134,7 +135,6 @@ func writeConnectionContext (c *Client, conn *connection) (error) {
   } else {
     username = user.Username
   }
-  log.Println("username = " + username)
   userProto := hadoop_common.UserInformationProto{EffectiveUser: nil, RealUser: &username}
 
   // Create hadoop_common.IpcConnectionContextProto
@@ -151,14 +151,12 @@ func writeConnectionContext (c *Client, conn *connection) (error) {
     log.Fatal("proto.Marshal(&rpcReqHeaderProto)", err)
     return err
   }
-  log.Println("XXX rpcReqHeaderProtoBytes: ", len(rpcReqHeaderProtoBytes))
 
   ipcCtxProtoBytes, _ := proto.Marshal(&ipcCtxProto)
   if err != nil {
     log.Fatal("proto.Marshal(&ipcCtxProto)", err)
     return err
   }
-  log.Println("XXX ipcCtxProtoBytes: ", len(ipcCtxProtoBytes))
 
   totalLength := len(rpcReqHeaderProtoBytes) + sizeVarint(len(rpcReqHeaderProtoBytes)) + len(ipcCtxProtoBytes) + sizeVarint(len(ipcCtxProtoBytes))
   var tLen int32 = int32(totalLength)
@@ -205,11 +203,8 @@ func sendRequest (c *Client, conn *connection, rpcCall *call) (error) {
   }
 
   // 1. RequestHeaderProto
-  methodName := "getApplications"
-  protocolName := "org.apache.hadoop.yarn.api.ApplicationClientProtocolPB"
-  var clientProtocolVersion uint64 = 1
-  requestHeaderProto := hadoop_common.RequestHeaderProto {MethodName: &methodName, DeclaringClassProtocolName: &protocolName, ClientProtocolVersion: &clientProtocolVersion}
-  requestHeaderProtoBytes, err := proto.Marshal(&requestHeaderProto)
+  requestHeaderProto := rpcCall.procedure
+  requestHeaderProtoBytes, err := proto.Marshal(requestHeaderProto)
   if (err != nil) {
     log.Fatal("proto.Marshal(&requestHeaderProto)", err)
     return err
@@ -224,20 +219,14 @@ func sendRequest (c *Client, conn *connection, rpcCall *call) (error) {
   }
 
   totalLength := len(rpcReqHeaderProtoBytes) + sizeVarint(len(rpcReqHeaderProtoBytes)) + len(requestHeaderProtoBytes) + sizeVarint(len(requestHeaderProtoBytes)) + len(paramProtoBytes) + sizeVarint(len(paramProtoBytes))
-  log.Println("totalLength = ", totalLength)
-  log.Println("len(rpcReqHeaderProtoBytes)= ", len(rpcReqHeaderProtoBytes))
-  log.Println("len(requestHeaderProtoBytes)= ", len(requestHeaderProtoBytes))
-  log.Println("len(paramProtoBytes)= ", len(paramProtoBytes))
   var tLen int32 = int32(totalLength)
   if totalLengthBytes, err := gohadooprpc.ConvertFixedToBytes(tLen); err != nil {
     log.Fatal("ConvertFixedToBytes(totalLength)", err)
     return err
   } else {
-    if w, err := conn.con.Write(totalLengthBytes); err != nil {
+    if _, err := conn.con.Write(totalLengthBytes); err != nil {
     log.Fatal("conn.con.Write(totalLengthBytes)", err)
     return err
-  } else {
-    log.Println("totalLenB =", w)
   }
  } 
 
@@ -266,27 +255,19 @@ func writeDelimitedTo (conn *connection, msg proto.Message) (error) {
 }
 
 func writeDelimitedBytes (conn *connection, data []byte) (error) {
-  log.Println("len(data) = ", len(data))
-  log.Print("enc of len(data) = %X", proto.EncodeVarint(uint64(len(data))))
-  if w, err := conn.con.Write(proto.EncodeVarint(uint64(len(data)))); err != nil {
+  if _, err := conn.con.Write(proto.EncodeVarint(uint64(len(data)))); err != nil {
     log.Fatal("conn.con.Write(proto.EncodeVarint(uint64(len(data))))", err)
     return err
-  } else {
-    log.Println("XXX wrote enc data ", w)
-  }
-  if w, err := conn.con.Write(data); err != nil {
+  } 
+  if _, err := conn.con.Write(data); err != nil {
     log.Fatal("conn.con.Write(data)", err)
     return err
-  } else {
-    log.Println("XXX wrote data ", w)
-  }
+  } 
 
   return nil
 }
 
 func (c *Client) readResponse (conn *connection, rpcCall *call) (error) {
-  log.Println("readResponse")
-
   // Read first 4 bytes to get total-length
   var totalLength int32 = -1;
   var totalLengthBytes [4]byte 
@@ -315,6 +296,7 @@ func (c *Client) readResponse (conn *connection, rpcCall *call) (error) {
     return err
   }
   log.Println("Recieved rpcResponseHeaderProto = ", rpcResponseHeaderProto)
+  log.Println("XXX off = ", off)
 
   err = c.checkRpcHeader(&rpcResponseHeaderProto)
   if err != nil {
@@ -323,7 +305,9 @@ func (c *Client) readResponse (conn *connection, rpcCall *call) (error) {
   }
 
   // Parse RpcResponseWrapper
-  _, err = readDelimited(responseBytes[off:], rpcCall.response)
+  soff, err := readDelimited(responseBytes[off:], rpcCall.response)
+  log.Println("XXX off = ", off)
+  log.Println("XXX soff = ", soff)
   return err
 }
 
@@ -338,6 +322,7 @@ func readDelimited (rawData []byte, msg proto.Message) (int, error) {
     log.Fatal("XXX proto.Unmarshal(rawData[off:headerLength+1]) ", err)
     return -1, err
   }
+  log.Println("readDelimited ", msg)
 
   return off+int(headerLength), nil
 }
