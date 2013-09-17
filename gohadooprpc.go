@@ -56,3 +56,9 @@ func ConvertFixedToBytes (data interface{}) ([]byte, error) {
   return buf.Bytes(), err
 }
 
+func ConvertBytesToFixed (rawBytes []byte, data interface{}) (error) {
+  buf := bytes.NewBuffer(rawBytes)
+  err := binary.Read(buf, binary.BigEndian, data)
+  return err
+}
+
