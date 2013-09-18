@@ -53,6 +53,7 @@ message FinishApplicationMasterRequestProto {
 }
 
 message FinishApplicationMasterResponseProto {
+  optional bool isUnregistered = 1 [default = false];
 }
 
 message AllocateRequestProto {

@@ -37,9 +37,9 @@ type RequestHeaderProto struct {
 	// the actual protocol is different (i.e. the protocol is
 	// ProtocolInfoProto) since they reuse the connection; in this case
 	// the declaringClassProtocolName field is set to the ProtocolInfoProto
-	DeclaringClassProtocolName *string `protobuf:"bytes,3,req,name=declaringClassProtocolName" json:"declaringClassProtocolName,omitempty"`
+	DeclaringClassProtocolName *string `protobuf:"bytes,2,req,name=declaringClassProtocolName" json:"declaringClassProtocolName,omitempty"`
 	// * protocol version of class declaring the called method
-	ClientProtocolVersion *uint64 `protobuf:"varint,4,req,name=clientProtocolVersion" json:"clientProtocolVersion,omitempty"`
+	ClientProtocolVersion *uint64 `protobuf:"varint,3,req,name=clientProtocolVersion" json:"clientProtocolVersion,omitempty"`
 	XXX_unrecognized      []byte  `json:"-"`
 }
 

@@ -26,7 +26,7 @@ type connection struct {
 }
 
 type call struct {
-  callId uint32  // TODO HADOOP-9944 
+  callId int32  
   procedure proto.Message
   request proto.Message
   response proto.Message
@@ -143,7 +143,7 @@ func writeConnectionContext (c *Client, conn *connection) (error) {
   ipcCtxProto := hadoop_common.IpcConnectionContextProto{UserInfo: &userProto, Protocol: &protocolName}
   
   // Create RpcRequestHeaderProto
-  var callId uint32 = 4294967293 // TODO: HADOOP-9944
+  var callId int32 = -3
   var clientId [16]byte = [16]byte(*c.ClientId)
   rpcReqHeaderProto := hadoop_common.RpcRequestHeaderProto {RpcKind: &gohadooprpc.RPC_PROTOCOL_BUFFFER, RpcOp: &gohadooprpc.RPC_FINAL_PACKET, CallId: &callId, ClientId: clientId[0:16], RetryCount: &gohadooprpc.RPC_DEFAULT_RETRY_COUNT}
 

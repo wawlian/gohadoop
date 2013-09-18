@@ -2,7 +2,7 @@ package main
 
 import (
   "log"
-  "github.com/gohadooprpc/org/apache/hadoop/ipc/client"
+  "github.com/gohadooprpc/hadoop_ipc/client"
   "github.com/gohadooprpc/hadoop_common"
   "github.com/gohadooprpc/hadoop_yarn"
   "github.com/nu7hatch/gouuid"

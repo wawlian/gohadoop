@@ -251,7 +251,7 @@ func (x *RpcSaslProto_SaslState) UnmarshalJSON(data []byte) error {
 type RpcRequestHeaderProto struct {
 	RpcKind  *RpcKindProto                         `protobuf:"varint,1,opt,name=rpcKind,enum=hadoop.common.RpcKindProto" json:"rpcKind,omitempty"`
 	RpcOp    *RpcRequestHeaderProto_OperationProto `protobuf:"varint,2,opt,name=rpcOp,enum=hadoop.common.RpcRequestHeaderProto_OperationProto" json:"rpcOp,omitempty"`
-	CallId   *uint32                               `protobuf:"varint,3,req,name=callId" json:"callId,omitempty"`
+	CallId   *int32                                `protobuf:"zigzag32,3,req,name=callId" json:"callId,omitempty"`
 	ClientId []byte                                `protobuf:"bytes,4,req,name=clientId" json:"clientId,omitempty"`
 	// clientId + callId uniquely identifies a request
 	// retry count, 1 means this is the first retry
@@ -279,7 +279,7 @@ func (m *RpcRequestHeaderProto) GetRpcOp() RpcRequestHeaderProto_OperationProto 
 	return 0
 }
 
-func (m *RpcRequestHeaderProto) GetCallId() uint32 {
+func (m *RpcRequestHeaderProto) GetCallId() int32 {
 	if m != nil && m.CallId != nil {
 		return *m.CallId
 	}

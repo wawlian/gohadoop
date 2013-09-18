@@ -116,12 +116,22 @@ func (m *FinishApplicationMasterRequestProto) GetFinalApplicationStatus() FinalA
 }
 
 type FinishApplicationMasterResponseProto struct {
+	IsUnregistered   *bool  `protobuf:"varint,1,opt,name=isUnregistered,def=0" json:"isUnregistered,omitempty"`
 	XXX_unrecognized []byte `json:"-"`
 }
 
 func (m *FinishApplicationMasterResponseProto) Reset()         { *m = FinishApplicationMasterResponseProto{} }
 func (m *FinishApplicationMasterResponseProto) String() string { return proto.CompactTextString(m) }
 func (*FinishApplicationMasterResponseProto) ProtoMessage()    {}
+
+const Default_FinishApplicationMasterResponseProto_IsUnregistered bool = false
+
+func (m *FinishApplicationMasterResponseProto) GetIsUnregistered() bool {
+	if m != nil && m.IsUnregistered != nil {
+		return *m.IsUnregistered
+	}
+	return Default_FinishApplicationMasterResponseProto_IsUnregistered
+}
 
 type AllocateRequestProto struct {
 	Ask              []*ResourceRequestProto        `protobuf:"bytes,1,rep,name=ask" json:"ask,omitempty"`
