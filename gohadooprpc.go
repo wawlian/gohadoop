@@ -2,7 +2,10 @@ package gohadooprpc
 
 import (
   "bytes"
+  "strings"
   "encoding/binary"
+  "runtime"
+  "unicode"
   "github.com/gohadooprpc/hadoop_common"
 )
 
@@ -13,6 +16,7 @@ var RPC_SERVICE_CLASS byte = 0x00
 var RPC_PROTOCOL_BUFFFER hadoop_common.RpcKindProto = hadoop_common.RpcKindProto_RPC_PROTOCOL_BUFFER
 var RPC_FINAL_PACKET hadoop_common.RpcRequestHeaderProto_OperationProto = hadoop_common.RpcRequestHeaderProto_RPC_FINAL_PACKET
 var RPC_DEFAULT_RETRY_COUNT int32 = hadoop_common.Default_RpcRequestHeaderProto_RetryCount
+var CLIENT_PROTOCOL_VERSION uint64 = 1
 
 type AuthMethod byte
 const (
@@ -60,5 +64,15 @@ func ConvertBytesToFixed (rawBytes []byte, data interface{}) (error) {
   buf := bytes.NewBuffer(rawBytes)
   err := binary.Read(buf, binary.BigEndian, data)
   return err
+}
+
+func GetCalleeRPCRequestHeaderProto (protocolName *string) *hadoop_common.RequestHeaderProto {
+  pc, _, _, _ := runtime.Caller(1) // Callee Method Name
+  fullName := runtime.FuncForPC(pc).Name()
+  names := strings.Split(fullName, ".")
+  unicodeName := []rune(names[len(names) - 1])
+  unicodeName[0] = unicode.ToLower(unicodeName[0])
+  methodName := string(unicodeName)
+  return &hadoop_common.RequestHeaderProto {MethodName: &methodName, DeclaringClassProtocolName: protocolName, ClientProtocolVersion: &CLIENT_PROTOCOL_VERSION}
 }
 

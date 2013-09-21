@@ -8,10 +8,55 @@ import proto "code.google.com/p/goprotobuf/proto"
 import json "encoding/json"
 import math "math"
 
+import "github.com/gohadooprpc"
+import hadoop_ipc_client "github.com/gohadooprpc/hadoop_ipc/client"
+import "github.com/nu7hatch/gouuid"
+
 // Reference proto, json, and math imports to suppress error if they are not otherwise used.
 var _ = proto.Marshal
 var _ = &json.SyntaxError{}
 var _ = math.Inf
 
+var APPLICATION_MASTER_PROTOCOL = "org.apache.hadoop.yarn.api.ApplicationMasterProtocolPB"
+
 func init() {
 }
+
+type ApplicationMasterProtocolService interface {
+	RegisterApplicationMaster(in *RegisterApplicationMasterRequestProto, out *RegisterApplicationMasterResponseProto) error
+	FinishApplicationMaster(in *FinishApplicationMasterRequestProto, out *FinishApplicationMasterResponseProto) error
+	Allocate(in *AllocateRequestProto, out *AllocateResponseProto) error
+}
+
+type ApplicationMasterProtocolServiceClient struct {
+	*hadoop_ipc_client.Client
+}
+
+func (c *ApplicationMasterProtocolServiceClient) RegisterApplicationMaster(in *RegisterApplicationMasterRequestProto, out *RegisterApplicationMasterResponseProto) error {
+	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&APPLICATION_MASTER_PROTOCOL), in, out)
+}
+func (c *ApplicationMasterProtocolServiceClient) FinishApplicationMaster(in *FinishApplicationMasterRequestProto, out *FinishApplicationMasterResponseProto) error {
+	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&APPLICATION_MASTER_PROTOCOL), in, out)
+}
+func (c *ApplicationMasterProtocolServiceClient) Allocate(in *AllocateRequestProto, out *AllocateResponseProto) error {
+	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&APPLICATION_MASTER_PROTOCOL), in, out)
+}
+
+func DialApplicationMasterProtocolService(host string, port int) (*ApplicationMasterProtocolServiceClient, error) {
+  clientId, _ := uuid.NewV4()
+  c := &hadoop_ipc_client.Client{ClientId: clientId, Server: host, Port: port}
+	return &ApplicationMasterProtocolServiceClient{c}, nil
+}
+
+/*
+// DialApplicationMasterProtocolService connects to an ApplicationMasterProtocolService at the specified network address.
+// DialApplicationMasterProtocolServiceTimeout connects to an ApplicationMasterProtocolService at the specified network address.
+func DialApplicationMasterProtocolServiceTimeout(network, addr string,
+	timeout time.Duration) (*ApplicationMasterProtocolServiceClient, *rpc.Client, error) {
+	c, err := protorpc.DialTimeout(network, addr, timeout)
+	if err != nil {
+		return nil, nil, err
+	}
+	return &ApplicationMasterProtocolServiceClient{c}, c, nil
+}
+*/

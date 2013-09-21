@@ -11,7 +11,6 @@ import (
 func main() {
   clientId, _ := uuid.NewV4()
   c := &ipc.Client{ClientId: clientId, Server: "0.0.0.0", Port: 28081}
-
   var clientProtocolVersion uint64 = 1
   var methodName string
   var protocolName string
