@@ -7,7 +7,7 @@ import (
 
 func main() {
   
-  conf, _ := hadoop_conf.NewConfigurationResources([]string{"core-site.xml", "yarn-site.xml"})
+  conf, _ := hadoop_conf.NewConfigurationResources([]string{hadoop_conf.CORE_SITE, hadoop_conf.YARN_SITE})
 
   fsName, _ := conf.Get("fs.default.name", "XXX")
   log.Println("fs.default.name = ", fsName) 

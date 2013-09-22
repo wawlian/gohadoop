@@ -8,7 +8,12 @@ import (
   "encoding/xml"
 )
 
+const HADOOP_CONF_DIR = "HADOOP_CONF_DIR"
 const CORE_SITE = "core-site.xml"
+const HDFS_SITE = "hdfs-site.xml"
+const YARN_SITE = "yarn-site.xml"
+const MAPRED_SITE = "mapred-site.xml"
+const CAPACITY_SCHEDULER = "capacity-scheduler.xml"
 
 type Configuration interface {
   Get (key string, defaultValue string) (string, error)
@@ -67,7 +72,7 @@ func NewConfigurationResources (resources []string) (Configuration, error) {
   c := configurationImpl {Properties: make(map[string]string)}
 
   for _, resource := range resources {
-    conf, err := os.Open(os.Getenv("HADOOP_CONF_DIR") + string(os.PathSeparator) + resource)
+    conf, err := os.Open(os.Getenv(HADOOP_CONF_DIR) + string(os.PathSeparator) + resource)
     if err != nil {
       log.Fatal("Couldn't open core-site.xml", err)
       return nil, err
