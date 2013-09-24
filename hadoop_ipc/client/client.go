@@ -7,6 +7,7 @@ import (
   "bytes"
   "log"
   "net"
+  "strings"
   "strconv"
   "code.google.com/p/goprotobuf/proto"
   "github.com/nu7hatch/gouuid"
@@ -335,8 +336,23 @@ func (c *Client) readResponse (conn *connection, rpcCall *call) (error) {
     return err
   }
 
-  // Parse RpcResponseWrapper
-  _, err = readDelimited(responseBytes[off:], rpcCall.response)
+  if *rpcResponseHeaderProto.Status == hadoop_common.RpcResponseHeaderProto_SUCCESS {
+    // Parse RpcResponseWrapper
+    _, err = readDelimited(responseBytes[off:], rpcCall.response)
+  } else {
+    log.Println("RPC failed with status: ", rpcResponseHeaderProto.Status.String())
+    errorDetails := [4]string{rpcResponseHeaderProto.Status.String(), "ServerDidNotSetExceptionClassName", "ServerDidNotSetErrorMsg", "ServerDidNotSetErrorDetail"}
+    if rpcResponseHeaderProto.ExceptionClassName != nil {
+      errorDetails[0] = *rpcResponseHeaderProto.ExceptionClassName
+    }
+    if rpcResponseHeaderProto.ErrorMsg != nil {
+      errorDetails[1] = *rpcResponseHeaderProto.ErrorMsg
+    }
+    if rpcResponseHeaderProto.ErrorDetail != nil {
+      errorDetails[2] = rpcResponseHeaderProto.ErrorDetail.String()
+    }
+    err = errors.New(strings.Join(errorDetails[:], ":"))
+  }
   return err
 }
 
