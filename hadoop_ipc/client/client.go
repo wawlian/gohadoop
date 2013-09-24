@@ -217,7 +217,8 @@ func sizeVarint(x int) (n int) {
 }
 
 func sendRequest (c *Client, conn *connection, rpcCall *call) (error) {
-  
+  log.Println("About to call RPC: ", rpcCall.procedure)
+
   // 0. RpcRequestHeaderProto
   var clientId [16]byte = [16]byte(*c.ClientId)
   rpcReqHeaderProto := hadoop_common.RpcRequestHeaderProto {RpcKind: &gohadooprpc.RPC_PROTOCOL_BUFFFER, RpcOp: &gohadooprpc.RPC_FINAL_PACKET, CallId: &rpcCall.callId, ClientId: clientId[0:16], RetryCount: &rpcCall.retryCount}

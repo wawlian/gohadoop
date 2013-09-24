@@ -43,7 +43,7 @@ func (c *ApplicationMasterProtocolServiceClient) Allocate(in *AllocateRequestPro
 	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&APPLICATION_MASTER_PROTOCOL), in, out)
 }
 
-func DialApplicationMasterProtocolService(conf yarn_conf.YarnConfiguration) (*ApplicationMasterProtocolServiceClient, error) {
+func DialApplicationMasterProtocolService(conf yarn_conf.YarnConfiguration) (ApplicationMasterProtocolService, error) {
   clientId, _ := uuid.NewV4()
   ugi, _ := gohadooprpc.CreateSimpleUGIProto()
   serverAddress, _ := conf.GetRMSchedulerAddress()

@@ -47,7 +47,7 @@ func (c *ContainerManagementProtocolServiceClient) GetContainerStatuses(in *GetC
 }
 
 // DialContainerManagementProtocolService connects to an ContainerManagementProtocolService at the specified network address.
-func DialContainerManagementProtocolService(host string, port int) (*ContainerManagementProtocolServiceClient, error) {
+func DialContainerManagementProtocolService(host string, port int) (ContainerManagementProtocolService, error) {
   clientId, _ := uuid.NewV4()
   ugi, _ := gohadooprpc.CreateSimpleUGIProto()
   c := &hadoop_ipc_client.Client{ClientId: clientId, Ugi: ugi, ServerAddress: net.JoinHostPort(host, strconv.Itoa(port))}

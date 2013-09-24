@@ -79,7 +79,7 @@ func (c *ApplicationClientProtocolServiceClient) CancelDelegationToken(in *hadoo
 }
 
 // DialApplicationClientProtocolService connects to an ApplicationClientProtocolService at the specified network address.
-func DialApplicationClientProtocolService(conf yarn_conf.YarnConfiguration) (*ApplicationClientProtocolServiceClient, error) {
+func DialApplicationClientProtocolService(conf yarn_conf.YarnConfiguration) (ApplicationClientProtocolService, error) {
   clientId, _ := uuid.NewV4()
   ugi, _ := gohadooprpc.CreateSimpleUGIProto()
   serverAddress, _ := conf.GetRMAddress()
