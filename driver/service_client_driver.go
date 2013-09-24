@@ -3,12 +3,15 @@ package main
 import (
   "log"
   "github.com/gohadooprpc/hadoop_yarn"
+  yarn_conf "github.com/gohadooprpc/hadoop_yarn/conf"
 )
 
 func main() {
 
+  conf, _ := yarn_conf.NewYarnConfiguration()
+
   // Use the ApplicationClientProtocolService protocol
-  appClient, err := hadoop_yarn.DialApplicationClientProtocolService("0.0.0.0", 28081)
+  appClient, err := hadoop_yarn.DialApplicationClientProtocolService(conf)
   if err != nil {
     log.Fatal("hadoop_yarn.DialApplicationClientProtocolService not found")
   }

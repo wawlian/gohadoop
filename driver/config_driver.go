@@ -3,11 +3,12 @@ package main
 import (
   "log"
   hadoop_conf "github.com/gohadooprpc/hadoop_common/conf"
+  yarn_conf "github.com/gohadooprpc/hadoop_yarn/conf"
 )
 
 func main() {
   
-  conf, _ := hadoop_conf.NewConfigurationResources([]string{hadoop_conf.YARN_DEFAULT, hadoop_conf.YARN_SITE})
+  conf, _ := hadoop_conf.NewConfigurationResources([]string{yarn_conf.YARN_DEFAULT, yarn_conf.YARN_SITE})
 
   fsName, _ := conf.Get("fs.default.name", "XXX")
   log.Println("fs.default.name = ", fsName) 

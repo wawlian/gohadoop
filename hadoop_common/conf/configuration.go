@@ -1,4 +1,4 @@
-package hadoop_common
+package conf
 
 import (
   "os"
@@ -14,8 +14,6 @@ const (
   CORE_SITE = "core-site.xml"
   HDFS_DEFAULT = "hdfs-default.xml"
   HDFS_SITE = "hdfs-site.xml"
-  YARN_DEFAULT = "yarn-default.xml"
-  YARN_SITE = "yarn-site.xml"
 )
 
 type Configuration interface {

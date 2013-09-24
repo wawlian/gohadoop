@@ -10,6 +10,7 @@ import math "math"
 import "github.com/gohadooprpc"
 import hadoop_common "github.com/gohadooprpc/hadoop_common"
 import hadoop_ipc_client "github.com/gohadooprpc/hadoop_ipc/client" 
+import yarn_conf "github.com/gohadooprpc/hadoop_yarn/conf"
 import "github.com/nu7hatch/gouuid"
 
 // Reference proto, json, and math imports to suppress error if they are not otherwise used.
@@ -78,10 +79,11 @@ func (c *ApplicationClientProtocolServiceClient) CancelDelegationToken(in *hadoo
 }
 
 // DialApplicationClientProtocolService connects to an ApplicationClientProtocolService at the specified network address.
-func DialApplicationClientProtocolService(host string, port int) (*ApplicationClientProtocolServiceClient, error) {
+func DialApplicationClientProtocolService(conf yarn_conf.YarnConfiguration) (*ApplicationClientProtocolServiceClient, error) {
   clientId, _ := uuid.NewV4()
   ugi, _ := gohadooprpc.CreateSimpleUGIProto()
-  c := &hadoop_ipc_client.Client{ClientId: clientId, Ugi: ugi, Server: host, Port: port}
+  serverAddress, _ := conf.GetRMAddress()
+  c := &hadoop_ipc_client.Client{ClientId: clientId, Ugi: ugi, ServerAddress: serverAddress}
 	return &ApplicationClientProtocolServiceClient{c}, nil
 }
 

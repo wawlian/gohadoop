@@ -8,9 +8,13 @@ import proto "code.google.com/p/goprotobuf/proto"
 import json "encoding/json"
 import math "math"
 
-import "github.com/gohadooprpc"
-import hadoop_ipc_client "github.com/gohadooprpc/hadoop_ipc/client"
-import "github.com/nu7hatch/gouuid"
+import (
+  "net"
+  "strconv"
+  "github.com/gohadooprpc"
+  hadoop_ipc_client "github.com/gohadooprpc/hadoop_ipc/client"
+  "github.com/nu7hatch/gouuid"
+)
 
 // Reference proto, json, and math imports to suppress error if they are not otherwise used.
 var _ = proto.Marshal
@@ -46,7 +50,7 @@ func (c *ContainerManagementProtocolServiceClient) GetContainerStatuses(in *GetC
 func DialContainerManagementProtocolService(host string, port int) (*ContainerManagementProtocolServiceClient, error) {
   clientId, _ := uuid.NewV4()
   ugi, _ := gohadooprpc.CreateSimpleUGIProto()
-  c := &hadoop_ipc_client.Client{ClientId: clientId, Ugi: ugi, Server: host, Port: port}
+  c := &hadoop_ipc_client.Client{ClientId: clientId, Ugi: ugi, ServerAddress: net.JoinHostPort(host, strconv.Itoa(port))}
 	return &ContainerManagementProtocolServiceClient{c}, nil
 }
 

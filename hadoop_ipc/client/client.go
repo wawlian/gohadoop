@@ -8,7 +8,6 @@ import (
   "log"
   "net"
   "strings"
-  "strconv"
   "code.google.com/p/goprotobuf/proto"
   "github.com/nu7hatch/gouuid"
   "github.com/gohadooprpc"
@@ -18,8 +17,7 @@ import (
 type Client struct {
   ClientId *uuid.UUID
   Ugi *hadoop_common.UserInformationProto
-  Server string
-  Port int
+  ServerAddress string
   TCPNoDelay bool
 }
 
@@ -44,7 +42,7 @@ type call struct {
 func (c *Client) String() (string) {
   buf := bytes.NewBufferString("")
   fmt.Fprint(buf, "<clientId:", c.ClientId)
-  fmt.Fprint(buf, ", server:", getServerAddr(c)) 
+  fmt.Fprint(buf, ", server:", c.ServerAddress) 
   fmt.Fprint(buf, ">");
   return buf.String()
 }
@@ -72,10 +70,6 @@ func (c *Client) Call (rpc *hadoop_common.RequestHeaderProto, rpcRequest proto.M
   err = c.readResponse(conn, &rpcCall)
 
   return err
-}
-
-func getServerAddr (c *Client) (string) {
-  return net.JoinHostPort(c.Server, strconv.Itoa(c.Port))
 }
 
 var connectionPool = struct {
@@ -116,7 +110,7 @@ func getConnection (c *Client, connectionId *connection_id) (*connection, error)
 }
 
 func setupConnection (c *Client) (*connection, error) {
-  addr, _ := net.ResolveTCPAddr("tcp", getServerAddr(c))
+  addr, _ := net.ResolveTCPAddr("tcp", c.ServerAddress)
   tcpConn, err := net.DialTCP("tcp", nil, addr) 
   if err != nil {
     log.Println("error: ", err)

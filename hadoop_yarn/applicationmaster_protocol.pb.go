@@ -10,6 +10,7 @@ import math "math"
 
 import "github.com/gohadooprpc"
 import hadoop_ipc_client "github.com/gohadooprpc/hadoop_ipc/client"
+import yarn_conf "github.com/gohadooprpc/hadoop_yarn/conf"
 import "github.com/nu7hatch/gouuid"
 
 // Reference proto, json, and math imports to suppress error if they are not otherwise used.
@@ -42,10 +43,11 @@ func (c *ApplicationMasterProtocolServiceClient) Allocate(in *AllocateRequestPro
 	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&APPLICATION_MASTER_PROTOCOL), in, out)
 }
 
-func DialApplicationMasterProtocolService(host string, port int) (*ApplicationMasterProtocolServiceClient, error) {
+func DialApplicationMasterProtocolService(conf yarn_conf.YarnConfiguration) (*ApplicationMasterProtocolServiceClient, error) {
   clientId, _ := uuid.NewV4()
   ugi, _ := gohadooprpc.CreateSimpleUGIProto()
-  c := &hadoop_ipc_client.Client{ClientId: clientId, Ugi: ugi, Server: host, Port: port}
+  serverAddress, _ := conf.GetRMSchedulerAddress()
+  c := &hadoop_ipc_client.Client{ClientId: clientId, Ugi: ugi, ServerAddress: serverAddress}
 	return &ApplicationMasterProtocolServiceClient{c}, nil
 }
 
