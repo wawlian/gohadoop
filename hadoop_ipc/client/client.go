@@ -1,13 +1,13 @@
 package ipc 
 
 import (
+  "sync"
   "errors" 
   "fmt" 
   "bytes"
   "log"
   "net"
   "strconv"
-  "os/user"
   "code.google.com/p/goprotobuf/proto"
   "github.com/nu7hatch/gouuid"
   "github.com/gohadooprpc"
@@ -16,6 +16,7 @@ import (
 
 type Client struct {
   ClientId *uuid.UUID
+  Ugi *hadoop_common.UserInformationProto
   Server string
   Port int
   TCPNoDelay bool
@@ -23,6 +24,11 @@ type Client struct {
 
 type connection struct {
   con *net.TCPConn 
+}
+
+type connection_id struct {
+  user string
+  protocol string
 }
 
 type call struct {
@@ -42,10 +48,13 @@ func (c *Client) String() (string) {
   return buf.String()
 }
 
-func (c *Client) Call (rpc proto.Message, rpcRequest proto.Message, rpcResponse proto.Message) (error) {
+func (c *Client) Call (rpc *hadoop_common.RequestHeaderProto, rpcRequest proto.Message, rpcResponse proto.Message) (error) {
+  // Create connection_id
+  connectionId := connection_id{user: *c.Ugi.RealUser, protocol: *rpc.DeclaringClassProtocolName}
+
   // Get connection to server
   log.Println("Connecting...", c)
-  conn, err := getConnection(c)
+  conn, err := getConnection(c, &connectionId)
   if err != nil {
     return err
   }
@@ -68,11 +77,41 @@ func getServerAddr (c *Client) (string) {
   return net.JoinHostPort(c.Server, strconv.Itoa(c.Port))
 }
 
-func getConnection (c *Client) (*connection, error) {
-  con, err := setupConnection(c)
-  writeConnectionHeader(con)
-  writeConnectionContext(c, con)
-  return con, err
+var connectionPool = struct {
+  sync.RWMutex
+  connections map[connection_id]*connection
+} {connections: make(map[connection_id]*connection)}
+
+func getConnection (c *Client, connectionId *connection_id) (*connection, error) {
+  // Try to re-use an existing connection
+  connectionPool.RLock()
+  con := connectionPool.connections[*connectionId]
+  if con != nil {
+    log.Println("Found connection in connectionPool!")
+  } else {
+    log.Println("Couldn't find connection in connectionPool!")
+  }
+  connectionPool.RUnlock()
+  
+  // If necessary, create a new connection and save it in the connection-pool
+  var err error
+  if con == nil {
+    con, err = setupConnection(c)
+    if err != nil {
+      log.Fatal("Couldn't setup connection: ", err)
+      return nil, err
+    }
+
+    connectionPool.Lock()
+    log.Println("Saving connection in connectionPool")
+    connectionPool.connections[*connectionId] = con
+    connectionPool.Unlock()
+
+    writeConnectionHeader(con)
+    writeConnectionContext(c, con, connectionId)
+  }
+
+  return con, nil
 }
 
 func setupConnection (c *Client) (*connection, error) {
@@ -124,24 +163,14 @@ func writeConnectionHeader (conn *connection) (error) {
     return err
   }
 
-  return nil 
+  return nil
 }
 
-func writeConnectionContext (c *Client, conn *connection) (error) {
-  // Figure the current user-name
-  var username string
-  if user, err := user.Current(); err != nil {
-    log.Fatal("user.Current", err)
-    return err
-  } else {
-    username = user.Username
-  }
-  userProto := hadoop_common.UserInformationProto{EffectiveUser: nil, RealUser: &username}
-
+func writeConnectionContext (c *Client, conn *connection, connectionId *connection_id) (error) {
   // Create hadoop_common.IpcConnectionContextProto
-  protocolName := "org.apache.hadoop.yarn.api.ApplicationClientProtocolPB"
-  ipcCtxProto := hadoop_common.IpcConnectionContextProto{UserInfo: &userProto, Protocol: &protocolName}
-  
+  ugi, _ := gohadooprpc.CreateSimpleUGIProto()
+  ipcCtxProto := hadoop_common.IpcConnectionContextProto{UserInfo: ugi, Protocol: &connectionId.protocol}
+
   // Create RpcRequestHeaderProto
   var callId int32 = -3
   var clientId [16]byte = [16]byte(*c.ClientId)

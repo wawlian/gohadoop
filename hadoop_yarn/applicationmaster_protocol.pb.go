@@ -44,7 +44,8 @@ func (c *ApplicationMasterProtocolServiceClient) Allocate(in *AllocateRequestPro
 
 func DialApplicationMasterProtocolService(host string, port int) (*ApplicationMasterProtocolServiceClient, error) {
   clientId, _ := uuid.NewV4()
-  c := &hadoop_ipc_client.Client{ClientId: clientId, Server: host, Port: port}
+  ugi, _ := gohadooprpc.CreateSimpleUGIProto()
+  c := &hadoop_ipc_client.Client{ClientId: clientId, Ugi: ugi, Server: host, Port: port}
 	return &ApplicationMasterProtocolServiceClient{c}, nil
 }
 

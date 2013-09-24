@@ -80,7 +80,8 @@ func (c *ApplicationClientProtocolServiceClient) CancelDelegationToken(in *hadoo
 // DialApplicationClientProtocolService connects to an ApplicationClientProtocolService at the specified network address.
 func DialApplicationClientProtocolService(host string, port int) (*ApplicationClientProtocolServiceClient, error) {
   clientId, _ := uuid.NewV4()
-  c := &hadoop_ipc_client.Client{ClientId: clientId, Server: host, Port: port}
+  ugi, _ := gohadooprpc.CreateSimpleUGIProto()
+  c := &hadoop_ipc_client.Client{ClientId: clientId, Ugi: ugi, Server: host, Port: port}
 	return &ApplicationClientProtocolServiceClient{c}, nil
 }
 
