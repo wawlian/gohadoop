@@ -314,7 +314,7 @@ func (c *Client) readResponse (conn *connection, rpcCall *call) (error) {
   if _, err := conn.con.Read(responseBytes); err != nil {
     log.Fatal("conn.con.Read(totalLengthBytes)", err)
     return err
-  }
+  } 
 
   // Parse RpcResponseHeaderProto
   rpcResponseHeaderProto := hadoop_common.RpcResponseHeaderProto{}
@@ -357,9 +357,9 @@ func readDelimited (rawData []byte, msg proto.Message) (int, error) {
     log.Fatal("proto.DecodeVarint(rawData) returned zero")
     return -1, nil 
   }
-  err := proto.Unmarshal(rawData[off:headerLength+1], msg) // headerLength+1 for the slice
+  err := proto.Unmarshal(rawData[off:off+int(headerLength)], msg) 
   if (err != nil) {
-    log.Fatal("proto.Unmarshal(rawData[off:headerLength+1]) ", err)
+    log.Fatal("proto.Unmarshal(rawData[off:off+headerLength]) ", err)
     return -1, err
   }
 

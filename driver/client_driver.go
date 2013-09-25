@@ -2,6 +2,7 @@ package main
 
 import (
   "log"
+  "github.com/gohadooprpc"
   "github.com/gohadooprpc/hadoop_ipc/client"
   "github.com/gohadooprpc/hadoop_common"
   "github.com/gohadooprpc/hadoop_yarn"
@@ -9,8 +10,11 @@ import (
 )
 
 func main() {
+  var err error
+
   clientId, _ := uuid.NewV4()
-  c := &ipc.Client{ClientId: clientId, Server: "0.0.0.0", Port: 28081}
+  ugi, _ := gohadooprpc.CreateSimpleUGIProto()
+  c := &ipc.Client{ClientId: clientId, Ugi: ugi, ServerAddress: "0.0.0.0:28081"}
   var clientProtocolVersion uint64 = 1
   var methodName string
   var protocolName string
@@ -23,7 +27,7 @@ func main() {
   getAppsReqProto := hadoop_yarn.GetApplicationsRequestProto {ApplicationStates: applicationStates}
   getAppsResProto := hadoop_yarn.GetApplicationsResponseProto{}
   log.Println("Calling rpc method: ", methodName) 
-  err := c.Call(&getAppsRpcProto, &getAppsReqProto, &getAppsResProto)
+  err = c.Call(&getAppsRpcProto, &getAppsReqProto, &getAppsResProto)
   if err != nil {
     log.Fatal("Client.call failed", err)
   }
