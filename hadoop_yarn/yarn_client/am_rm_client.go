@@ -1,6 +1,7 @@
 package yarn_client
 
 import (
+  "log"
   "sync"
   "github.com/gohadoop/hadoop_yarn"
   yarn_conf "github.com/gohadoop/hadoop_yarn/conf"
@@ -9,6 +10,7 @@ import (
 type AMRMClient struct {
   applicationAttemptId *hadoop_yarn.ApplicationAttemptIdProto
   client hadoop_yarn.ApplicationMasterProtocolService
+  responseId int32
 }
 
 type resource_to_request struct {
@@ -57,5 +59,32 @@ func (c* AMRMClient) AddRequest (priority int32, resourceName string, capability
 }
 
 func (c* AMRMClient) Allocate () (*hadoop_yarn.AllocateResponseProto, error) {
-  return nil, nil
+  // Increment responseId
+  c.responseId++
+  log.Println("ResponseId: ", c.responseId)
+
+  asks := []*hadoop_yarn.ResourceRequestProto{}
+
+  // Set up resource-requests
+  resourceRequests.Lock()
+  for priority, requests := range resourceRequests.requests {
+    for host, request := range requests {
+      log.Println("priority: ", priority)
+      log.Println("host: ", host)
+      log.Println("request: ", request)
+
+      resourceRequest := hadoop_yarn.ResourceRequestProto{Priority: &hadoop_yarn.PriorityProto{Priority: &priority}, ResourceName: &host, Capability: request.capability, NumContainers: &request.numContainers}
+      asks = append(asks, &resourceRequest)
+    }
+  }
+  log.Println("AMRMClient.Allocate #asks: ", len(asks))
+
+  // Clear
+  resourceRequests.requests = make(map[int32]map[string]*resource_to_request) 
+  resourceRequests.Unlock()
+
+  request := hadoop_yarn.AllocateRequestProto{ApplicationAttemptId: c.applicationAttemptId, Ask: asks, ResponseId: &c.responseId}
+  response := hadoop_yarn.AllocateResponseProto{}
+  err := c.client.Allocate(&request, &response)
+  return &response, err
 }
