@@ -851,7 +851,7 @@ index c1cd0eb..4c0ac08 100644
 +
  }  
 diff --git hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/src/main/java/org/apache/hadoop/yarn/server/nodemanager/containermanager/ContainerManagerImpl.java hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/src/main/java/org/apache/hadoop/yarn/server/nodemanager/containermanager/ContainerManagerImpl.java
-index 0af4332..ce8b415 100644
+index 0af4332..115e7db 100644
 --- hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/src/main/java/org/apache/hadoop/yarn/server/nodemanager/containermanager/ContainerManagerImpl.java
 +++ hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/src/main/java/org/apache/hadoop/yarn/server/nodemanager/containermanager/ContainerManagerImpl.java
 @@ -138,6 +138,8 @@
@@ -863,19 +863,40 @@ index 0af4332..ce8b415 100644
    public ContainerManagerImpl(Context context, ContainerExecutor exec,
        DeletionService deletionContext, NodeStatusUpdater nodeStatusUpdater,
        NodeManagerMetrics metrics, ApplicationACLsManager aclsManager,
-@@ -189,6 +191,11 @@ public void serviceInit(Configuration conf) throws Exception {
-     addIfService(logHandler);
-     dispatcher.register(LogHandlerEventType.class, logHandler);
-     
+@@ -227,10 +229,18 @@ protected void serviceStart() throws Exception {
+     Configuration conf = getConfig();
+     Configuration serverConf = new Configuration(conf);
+ 
 +    this.rpcAuth = 
 +        conf.getBoolean(
 +            YarnConfiguration.YARN_RPC_AM_AUTH, 
 +            YarnConfiguration.DEFAULT_YARN_RPC_AM_AUTH);
 +
-     super.serviceInit(conf);
-   }
++
+     // always enforce it to be token-based.
+-    serverConf.set(
+-      CommonConfigurationKeysPublic.HADOOP_SECURITY_AUTHENTICATION,
+-      SaslRpcServer.AuthMethod.TOKEN.toString());
++    if (rpcAuth) {
++      serverConf.set(
++          CommonConfigurationKeysPublic.HADOOP_SECURITY_AUTHENTICATION,
++          SaslRpcServer.AuthMethod.TOKEN.toString());
++    }
+     
+     YarnRPC rpc = YarnRPC.create(conf);
  
-@@ -392,10 +399,21 @@ protected void authorizeStartRequest(NMTokenIdentifier nmTokenIdentifier,
+@@ -318,6 +328,10 @@ protected NMTokenIdentifier selectNMTokenIdentifier(
+ 
+   protected void authorizeUser(UserGroupInformation remoteUgi,
+       NMTokenIdentifier nmTokenIdentifier) throws YarnException {
++    if (!rpcAuth) {
++      return;
++    }
++    
+     if (!remoteUgi.getUserName().equals(
+       nmTokenIdentifier.getApplicationAttemptId().toString())) {
+       throw RPCUtil.getRemoteException("Expected applicationAttemptId: "
+@@ -392,10 +406,21 @@ protected void authorizeStartRequest(NMTokenIdentifier nmTokenIdentifier,
      for (StartContainerRequest request : requests.getStartContainerRequests()) {
        ContainerId containerId = null;
        try {
@@ -901,7 +922,7 @@ index 0af4332..ce8b415 100644
          containerId = containerTokenIdentifier.getContainerID();
          startContainerInternal(nmTokenIdentifier, containerTokenIdentifier,
            request);
-@@ -414,6 +432,8 @@ protected void authorizeStartRequest(NMTokenIdentifier nmTokenIdentifier,
+@@ -414,6 +439,8 @@ protected void authorizeStartRequest(NMTokenIdentifier nmTokenIdentifier,
        succeededContainers, failedContainers);
    }
  
@@ -910,7 +931,7 @@ index 0af4332..ce8b415 100644
    @SuppressWarnings("unchecked")
    private void startContainerInternal(NMTokenIdentifier nmTokenIdentifier,
        ContainerTokenIdentifier containerTokenIdentifier,
-@@ -430,39 +450,42 @@ private void startContainerInternal(NMTokenIdentifier nmTokenIdentifier,
+@@ -430,39 +457,42 @@ private void startContainerInternal(NMTokenIdentifier nmTokenIdentifier,
       * belongs to correct Node Manager (part of retrieve password). c) It has
       * correct RMIdentifier. d) It is not expired.
       */
@@ -972,7 +993,7 @@ index 0af4332..ce8b415 100644
            + " already is running on this node!!");
      }
  
-@@ -646,6 +669,11 @@ private ContainerStatus getContainerStatusInternal(ContainerId containerID,
+@@ -646,6 +676,11 @@ private ContainerStatus getContainerStatusInternal(ContainerId containerID,
    protected void authorizeGetAndStopContainerRequest(ContainerId containerId,
        Container container, boolean stopRequest, NMTokenIdentifier identifier)
        throws YarnException {
