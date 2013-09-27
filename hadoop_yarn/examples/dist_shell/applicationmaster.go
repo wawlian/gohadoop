@@ -62,7 +62,7 @@ func main() {
   log.Println("Successfully registered application master.")
 
   // Add resource requests
-  numContainers := int32(1)
+  const numContainers = int32(1)
   memory := int32(128)
   resource := hadoop_yarn.ResourceProto{Memory: &memory}
   rmClient.AddRequest(1, "*", &resource, numContainers)
@@ -76,7 +76,6 @@ func main() {
 
   numAllocatedContainers := int32(0)
   allocatedContainers := make([]*hadoop_yarn.ContainerProto, numContainers, numContainers)
-  //allocatedContainers := make([]*hadoop_yarn.ContainerProto, numContainers, 2*numContainers+1)
   for numAllocatedContainers < numContainers  {
     // Sleep for a while
     log.Println("Sleeping...")
@@ -114,6 +113,26 @@ func main() {
       log.Fatal("nmClient.StartContainer: ", err)
     }
   }
+
+  // Wait for Containers to complete
+  numCompletedContainers := int32(0)
+  for numCompletedContainers < numContainers {
+    // Sleep for a while
+    log.Println("Sleeping...")
+    time.Sleep(3 * time.Second)
+    log.Println("Sleeping... done!")
+
+    allocateResponse, err = rmClient.Allocate()
+    if err == nil {
+      log.Println("allocateResponse: ", *allocateResponse)
+    }
+
+    for _, containerStatus := range allocateResponse.CompletedContainerStatuses {
+      log.Println("Completed container: ", *containerStatus, " exit-code: ", *containerStatus.ExitStatus)
+      numCompletedContainers++
+    }
+  }
+  log.Println("Containers complete: ", numCompletedContainers)
 
   // Unregister with ResourceManager
   log.Println("About to unregister application master.")
