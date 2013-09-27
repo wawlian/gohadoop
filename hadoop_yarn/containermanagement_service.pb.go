@@ -11,8 +11,8 @@ import math "math"
 import (
   "net"
   "strconv"
-  "github.com/gohadooprpc"
-  hadoop_ipc_client "github.com/gohadooprpc/hadoop_ipc/client"
+  "github.com/gohadoop"
+  hadoop_ipc_client "github.com/gohadoop/hadoop_ipc/client"
   "github.com/nu7hatch/gouuid"
 )
 
@@ -37,19 +37,19 @@ type ContainerManagementProtocolServiceClient struct {
 }
 
 func (c *ContainerManagementProtocolServiceClient) StartContainers(in *StartContainersRequestProto, out *StartContainersResponseProto) error {
-	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&protocolName), in, out)
+	return c.Call(gohadoop.GetCalleeRPCRequestHeaderProto(&protocolName), in, out)
 }
 func (c *ContainerManagementProtocolServiceClient) StopContainers(in *StopContainersRequestProto, out *StopContainersResponseProto) error {
-	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&protocolName), in, out)
+	return c.Call(gohadoop.GetCalleeRPCRequestHeaderProto(&protocolName), in, out)
 }
 func (c *ContainerManagementProtocolServiceClient) GetContainerStatuses(in *GetContainerStatusesRequestProto, out *GetContainerStatusesResponseProto) error {
-	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&protocolName), in, out)
+	return c.Call(gohadoop.GetCalleeRPCRequestHeaderProto(&protocolName), in, out)
 }
 
 // DialContainerManagementProtocolService connects to an ContainerManagementProtocolService at the specified network address.
 func DialContainerManagementProtocolService(host string, port int) (ContainerManagementProtocolService, error) {
   clientId, _ := uuid.NewV4()
-  ugi, _ := gohadooprpc.CreateSimpleUGIProto()
+  ugi, _ := gohadoop.CreateSimpleUGIProto()
   c := &hadoop_ipc_client.Client{ClientId: clientId, Ugi: ugi, ServerAddress: net.JoinHostPort(host, strconv.Itoa(port))}
 	return &ContainerManagementProtocolServiceClient{c}, nil
 }

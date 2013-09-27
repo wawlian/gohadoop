@@ -2,8 +2,8 @@ package main
 
 import (
   "log"
-  hadoop_conf "github.com/gohadooprpc/hadoop_common/conf"
-  yarn_conf "github.com/gohadooprpc/hadoop_yarn/conf"
+  hadoop_conf "github.com/gohadoop/hadoop_common/conf"
+  yarn_conf "github.com/gohadoop/hadoop_yarn/conf"
 )
 
 func main() {

@@ -1,7 +1,7 @@
 package conf
 
 import (
-  hadoop_conf "github.com/gohadooprpc/hadoop_common/conf"
+  hadoop_conf "github.com/gohadoop/hadoop_common/conf"
 )
 
 const (

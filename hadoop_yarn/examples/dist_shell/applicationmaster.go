@@ -6,9 +6,9 @@ import (
   "strconv"
   "log"
   "time"
-  hadoop_yarn "github.com/gohadooprpc/hadoop_yarn"
-  yarn_conf "github.com/gohadooprpc/hadoop_yarn/conf"
-  "github.com/gohadooprpc/hadoop_yarn/yarn_client"
+  hadoop_yarn "github.com/gohadoop/hadoop_yarn"
+  yarn_conf "github.com/gohadoop/hadoop_yarn/conf"
+  "github.com/gohadoop/hadoop_yarn/yarn_client"
 )
 
 func parseAppAttemptId () (*hadoop_yarn.ApplicationAttemptIdProto, error) {

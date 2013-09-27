@@ -1,4 +1,4 @@
-package gohadooprpc 
+package gohadoop 
 
 import (
   "bytes"
@@ -8,7 +8,7 @@ import (
   "unicode"
   "os/user"
   "log"
-  "github.com/gohadooprpc/hadoop_common"
+  "github.com/gohadoop/hadoop_common"
 )
 
 var RPC_HEADER []byte = []byte("hrpc") 

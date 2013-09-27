@@ -2,10 +2,10 @@ package main
 
 import (
   "log"
-  "github.com/gohadooprpc"
-  "github.com/gohadooprpc/hadoop_ipc/client"
-  "github.com/gohadooprpc/hadoop_common"
-  "github.com/gohadooprpc/hadoop_yarn"
+  "github.com/gohadoop"
+  "github.com/gohadoop/hadoop_ipc/client"
+  "github.com/gohadoop/hadoop_common"
+  "github.com/gohadoop/hadoop_yarn"
   "github.com/nu7hatch/gouuid"
 )
 
@@ -13,7 +13,7 @@ func main() {
   var err error
 
   clientId, _ := uuid.NewV4()
-  ugi, _ := gohadooprpc.CreateSimpleUGIProto()
+  ugi, _ := gohadoop.CreateSimpleUGIProto()
   c := &ipc.Client{ClientId: clientId, Ugi: ugi, ServerAddress: "0.0.0.0:28081"}
   var clientProtocolVersion uint64 = 1
   var methodName string

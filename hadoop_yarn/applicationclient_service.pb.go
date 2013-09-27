@@ -7,10 +7,10 @@ package hadoop_yarn
 import proto "code.google.com/p/goprotobuf/proto"
 import json "encoding/json"
 import math "math"
-import "github.com/gohadooprpc"
-import hadoop_common "github.com/gohadooprpc/hadoop_common"
-import hadoop_ipc_client "github.com/gohadooprpc/hadoop_ipc/client" 
-import yarn_conf "github.com/gohadooprpc/hadoop_yarn/conf"
+import "github.com/gohadoop"
+import hadoop_common "github.com/gohadoop/hadoop_common"
+import hadoop_ipc_client "github.com/gohadoop/hadoop_ipc/client" 
+import yarn_conf "github.com/gohadoop/hadoop_yarn/conf"
 import "github.com/nu7hatch/gouuid"
 
 // Reference proto, json, and math imports to suppress error if they are not otherwise used.
@@ -42,46 +42,46 @@ type ApplicationClientProtocolServiceClient struct {
 }
 
 func (c *ApplicationClientProtocolServiceClient) GetNewApplication(in *GetNewApplicationRequestProto, out *GetNewApplicationResponseProto) error {
-	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
+	return c.Call(gohadoop.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
 }
 func (c *ApplicationClientProtocolServiceClient) GetApplicationReport(in *GetApplicationReportRequestProto, out *GetApplicationReportResponseProto) error {
-	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
+	return c.Call(gohadoop.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
 }
 func (c *ApplicationClientProtocolServiceClient) SubmitApplication(in *SubmitApplicationRequestProto, out *SubmitApplicationResponseProto) error {
-	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
+	return c.Call(gohadoop.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
 }
 func (c *ApplicationClientProtocolServiceClient) ForceKillApplication(in *KillApplicationRequestProto, out *KillApplicationResponseProto) error {
-	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
+	return c.Call(gohadoop.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
 }
 func (c *ApplicationClientProtocolServiceClient) GetClusterMetrics(in *GetClusterMetricsRequestProto, out *GetClusterMetricsResponseProto) error {
-	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
+	return c.Call(gohadoop.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
 }
 func (c *ApplicationClientProtocolServiceClient) GetApplications(in *GetApplicationsRequestProto, out *GetApplicationsResponseProto) error {
-	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
+	return c.Call(gohadoop.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
 }
 func (c *ApplicationClientProtocolServiceClient) GetClusterNodes(in *GetClusterNodesRequestProto, out *GetClusterNodesResponseProto) error {
-	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
+	return c.Call(gohadoop.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
 }
 func (c *ApplicationClientProtocolServiceClient) GetQueueInfo(in *GetQueueInfoRequestProto, out *GetQueueInfoResponseProto) error {
-	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
+	return c.Call(gohadoop.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
 }
 func (c *ApplicationClientProtocolServiceClient) GetQueueUserAcls(in *GetQueueUserAclsInfoRequestProto, out *GetQueueUserAclsInfoResponseProto) error {
-	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
+	return c.Call(gohadoop.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
 }
 func (c *ApplicationClientProtocolServiceClient) GetDelegationToken(in *hadoop_common.GetDelegationTokenRequestProto, out *hadoop_common.GetDelegationTokenResponseProto) error {
-	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
+	return c.Call(gohadoop.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
 }
 func (c *ApplicationClientProtocolServiceClient) RenewDelegationToken(in *hadoop_common.RenewDelegationTokenRequestProto, out *hadoop_common.RenewDelegationTokenResponseProto) error {
-	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
+	return c.Call(gohadoop.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
 }
 func (c *ApplicationClientProtocolServiceClient) CancelDelegationToken(in *hadoop_common.CancelDelegationTokenRequestProto, out *hadoop_common.CancelDelegationTokenResponseProto) error {
-	return c.Call(gohadooprpc.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
+	return c.Call(gohadoop.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
 }
 
 // DialApplicationClientProtocolService connects to an ApplicationClientProtocolService at the specified network address.
 func DialApplicationClientProtocolService(conf yarn_conf.YarnConfiguration) (ApplicationClientProtocolService, error) {
   clientId, _ := uuid.NewV4()
-  ugi, _ := gohadooprpc.CreateSimpleUGIProto()
+  ugi, _ := gohadoop.CreateSimpleUGIProto()
   serverAddress, _ := conf.GetRMAddress()
   c := &hadoop_ipc_client.Client{ClientId: clientId, Ugi: ugi, ServerAddress: serverAddress}
 	return &ApplicationClientProtocolServiceClient{c}, nil

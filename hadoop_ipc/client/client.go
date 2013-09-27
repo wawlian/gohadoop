@@ -10,8 +10,8 @@ import (
   "strings"
   "code.google.com/p/goprotobuf/proto"
   "github.com/nu7hatch/gouuid"
-  "github.com/gohadooprpc"
-  "github.com/gohadooprpc/hadoop_common"
+  "github.com/gohadoop"
+  "github.com/gohadoop/hadoop_common"
 )
 
 type Client struct {
@@ -129,19 +129,19 @@ func setupConnection (c *Client) (*connection, error) {
 
 func writeConnectionHeader (conn *connection) (error) {
   // RPC_HEADER
-  if _, err := conn.con.Write(gohadooprpc.RPC_HEADER); err != nil {
-    log.Fatal("conn.Write gohadooprpc.RPC_HEADER", err)
+  if _, err := conn.con.Write(gohadoop.RPC_HEADER); err != nil {
+    log.Fatal("conn.Write gohadoop.RPC_HEADER", err)
     return err
   } 
 
   // RPC_VERSION
-  if _, err := conn.con.Write(gohadooprpc.VERSION); err != nil {
-    log.Fatal("conn.Write gohadooprpc.VERSION", err)
+  if _, err := conn.con.Write(gohadoop.VERSION); err != nil {
+    log.Fatal("conn.Write gohadoop.VERSION", err)
     return err
   } 
 
   // RPC_SERVICE_CLASS
-  if serviceClass, err := gohadooprpc.ConvertFixedToBytes(gohadooprpc.RPC_SERVICE_CLASS); err != nil {
+  if serviceClass, err := gohadoop.ConvertFixedToBytes(gohadoop.RPC_SERVICE_CLASS); err != nil {
     log.Fatal("binary.Write", err)
     return err
   } else if _, err := conn.con.Write(serviceClass); err != nil {
@@ -150,11 +150,11 @@ func writeConnectionHeader (conn *connection) (error) {
   }
 
   // AuthProtocol
-  if authProtocol, err := gohadooprpc.ConvertFixedToBytes(gohadooprpc.AUTH_PROTOCOL_NONE); err != nil {
+  if authProtocol, err := gohadoop.ConvertFixedToBytes(gohadoop.AUTH_PROTOCOL_NONE); err != nil {
     log.Fatal("WTF AUTH_PROTOCOL_NONE", err)
     return err
   } else if _, err := conn.con.Write(authProtocol); err != nil {
-    log.Fatal("conn.Write gohadooprpc.AUTH_PROTOCOL_NONE", err)
+    log.Fatal("conn.Write gohadoop.AUTH_PROTOCOL_NONE", err)
     return err
   }
 
@@ -163,13 +163,13 @@ func writeConnectionHeader (conn *connection) (error) {
 
 func writeConnectionContext (c *Client, conn *connection, connectionId *connection_id) (error) {
   // Create hadoop_common.IpcConnectionContextProto
-  ugi, _ := gohadooprpc.CreateSimpleUGIProto()
+  ugi, _ := gohadoop.CreateSimpleUGIProto()
   ipcCtxProto := hadoop_common.IpcConnectionContextProto{UserInfo: ugi, Protocol: &connectionId.protocol}
 
   // Create RpcRequestHeaderProto
   var callId int32 = -3
   var clientId [16]byte = [16]byte(*c.ClientId)
-  rpcReqHeaderProto := hadoop_common.RpcRequestHeaderProto {RpcKind: &gohadooprpc.RPC_PROTOCOL_BUFFFER, RpcOp: &gohadooprpc.RPC_FINAL_PACKET, CallId: &callId, ClientId: clientId[0:16], RetryCount: &gohadooprpc.RPC_DEFAULT_RETRY_COUNT}
+  rpcReqHeaderProto := hadoop_common.RpcRequestHeaderProto {RpcKind: &gohadoop.RPC_PROTOCOL_BUFFFER, RpcOp: &gohadoop.RPC_FINAL_PACKET, CallId: &callId, ClientId: clientId[0:16], RetryCount: &gohadoop.RPC_DEFAULT_RETRY_COUNT}
 
   rpcReqHeaderProtoBytes, err := proto.Marshal(&rpcReqHeaderProto)
   if err != nil {
@@ -185,7 +185,7 @@ func writeConnectionContext (c *Client, conn *connection, connectionId *connecti
 
   totalLength := len(rpcReqHeaderProtoBytes) + sizeVarint(len(rpcReqHeaderProtoBytes)) + len(ipcCtxProtoBytes) + sizeVarint(len(ipcCtxProtoBytes))
   var tLen int32 = int32(totalLength)
-  if totalLengthBytes, err := gohadooprpc.ConvertFixedToBytes(tLen); err != nil {
+  if totalLengthBytes, err := gohadoop.ConvertFixedToBytes(tLen); err != nil {
     log.Fatal("ConvertFixedToBytes(totalLength)", err)
     return err
   } else if _, err := conn.con.Write(totalLengthBytes); err != nil {
@@ -221,7 +221,7 @@ func sendRequest (c *Client, conn *connection, rpcCall *call) (error) {
 
   // 0. RpcRequestHeaderProto
   var clientId [16]byte = [16]byte(*c.ClientId)
-  rpcReqHeaderProto := hadoop_common.RpcRequestHeaderProto {RpcKind: &gohadooprpc.RPC_PROTOCOL_BUFFFER, RpcOp: &gohadooprpc.RPC_FINAL_PACKET, CallId: &rpcCall.callId, ClientId: clientId[0:16], RetryCount: &rpcCall.retryCount}
+  rpcReqHeaderProto := hadoop_common.RpcRequestHeaderProto {RpcKind: &gohadoop.RPC_PROTOCOL_BUFFFER, RpcOp: &gohadoop.RPC_FINAL_PACKET, CallId: &rpcCall.callId, ClientId: clientId[0:16], RetryCount: &rpcCall.retryCount}
   rpcReqHeaderProtoBytes, err := proto.Marshal(&rpcReqHeaderProto)
   if (err != nil) {
     log.Fatal("proto.Marshal(&rpcReqHeaderProto)", err)
@@ -246,7 +246,7 @@ func sendRequest (c *Client, conn *connection, rpcCall *call) (error) {
 
   totalLength := len(rpcReqHeaderProtoBytes) + sizeVarint(len(rpcReqHeaderProtoBytes)) + len(requestHeaderProtoBytes) + sizeVarint(len(requestHeaderProtoBytes)) + len(paramProtoBytes) + sizeVarint(len(paramProtoBytes))
   var tLen int32 = int32(totalLength)
-  if totalLengthBytes, err := gohadooprpc.ConvertFixedToBytes(tLen); err != nil {
+  if totalLengthBytes, err := gohadoop.ConvertFixedToBytes(tLen); err != nil {
     log.Fatal("ConvertFixedToBytes(totalLength)", err)
     return err
   } else {
@@ -305,8 +305,8 @@ func (c *Client) readResponse (conn *connection, rpcCall *call) (error) {
     return err
   }
 
-  if err := gohadooprpc.ConvertBytesToFixed(totalLengthBytes[0:4], &totalLength); err !=  nil {
-    log.Fatal("gohadooprpc.ConvertBytesToFixed(totalLengthBytes, &totalLength)", err)
+  if err := gohadoop.ConvertBytesToFixed(totalLengthBytes[0:4], &totalLength); err !=  nil {
+    log.Fatal("gohadoop.ConvertBytesToFixed(totalLengthBytes, &totalLength)", err)
     return err
   }
 
