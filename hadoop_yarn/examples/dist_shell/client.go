@@ -34,14 +34,14 @@ func main() {
   // Some useful information
   queue := "default"
   appName := "simple-go-yarn-app"
-  appType := "GO_HADOOP_APPLICATION"
+  appType := "GO_HADOOP"
 
   // Setup ApplicationSubmissionContext for the application
   asc.AmContainerSpec = &clc
   asc.Resource = &resource
-  asc.ApplicationName = & appName
+  asc.ApplicationName = &appName
   asc.Queue = &queue
-  asc.ApplicationType = & appType
+  asc.ApplicationType = &appType
 
   // Submit!
   err := yarnClient.SubmitApplication(asc)

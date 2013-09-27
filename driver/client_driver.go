@@ -3,7 +3,7 @@ package main
 import (
   "log"
   "github.com/gohadoop"
-  "github.com/gohadoop/hadoop_ipc/client"
+  "github.com/gohadoop/hadoop_common/ipc/client"
   "github.com/gohadoop/hadoop_common"
   "github.com/gohadoop/hadoop_yarn"
   "github.com/nu7hatch/gouuid"

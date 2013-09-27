@@ -9,7 +9,7 @@ import json "encoding/json"
 import math "math"
 
 import "github.com/gohadoop"
-import hadoop_ipc_client "github.com/gohadoop/hadoop_ipc/client"
+import hadoop_ipc_client "github.com/gohadoop/hadoop_common/ipc/client"
 import yarn_conf "github.com/gohadoop/hadoop_yarn/conf"
 import "github.com/nu7hatch/gouuid"
 
