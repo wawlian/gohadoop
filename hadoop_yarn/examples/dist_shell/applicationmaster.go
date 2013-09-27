@@ -50,12 +50,12 @@ func main() {
   conf, _ := yarn_conf.NewYarnConfiguration()
 
   // Create AMRMClient
-  rmClient, _ := yarn_client.CreateAMRMClient(conf)
+  rmClient, _ := yarn_client.CreateAMRMClient(conf, applicationAttemptId)
   log.Println("Created RM client: ", rmClient)
 
   // Register with ResourceManager
   log.Println("About to register application master.")
-  err = rmClient.RegisterApplicationMaster("", -1, "", applicationAttemptId)
+  err = rmClient.RegisterApplicationMaster("", -1, "")
   if err != nil {
     log.Fatal("rmClient.RegisterApplicationMaster ", err)
   }
@@ -69,7 +69,7 @@ func main() {
   // Unregister with ResourceManager
   log.Println("About to unregister application master.")
   finalStatus := hadoop_yarn.FinalApplicationStatusProto_APP_SUCCEEDED
-  err = rmClient.FinishApplicationMaster(&finalStatus, "done", "", applicationAttemptId)
+  err = rmClient.FinishApplicationMaster(&finalStatus, "done", "")
   if err != nil {
     log.Fatal("rmClient.RegisterApplicationMaster ", err)
   }
