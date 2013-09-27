@@ -75,7 +75,8 @@ func main() {
   log.Println("#containers allocated: ", len(allocateResponse.AllocatedContainers)) 
 
   numAllocatedContainers := int32(0)
-  allocatedContainers := []*hadoop_yarn.ContainerProto{}
+  allocatedContainers := make([]*hadoop_yarn.ContainerProto, numContainers, numContainers)
+  //allocatedContainers := make([]*hadoop_yarn.ContainerProto, numContainers, 2*numContainers+1)
   for numAllocatedContainers < numContainers  {
     // Sleep for a while
     log.Println("Sleeping...")
@@ -87,9 +88,31 @@ func main() {
     if err == nil {
       log.Println("allocateResponse: ", *allocateResponse)
     }
-    numAllocatedContainers += int32(len(allocateResponse.AllocatedContainers))
-    log.Println("#containers allocated: ", copy(allocatedContainers, allocateResponse.AllocatedContainers))
-    log.Println("Total #containers allocated: ", numAllocatedContainers)
+
+    for _, container := range allocateResponse.AllocatedContainers {
+      allocatedContainers[numAllocatedContainers] = container
+      numAllocatedContainers++
+    }
+
+    log.Println("#containers allocated: ", len(allocateResponse.AllocatedContainers)) 
+    log.Println("Total #containers allocated so far: ", numAllocatedContainers)
+  }
+  log.Println("Final #containers allocated: ", numAllocatedContainers)
+
+  // Now launch containers
+  containerLaunchContext := hadoop_yarn.ContainerLaunchContextProto{Command: []string{"/bin/date"}}
+  log.Println("containerLaunchContext: ", containerLaunchContext)
+  for _, container := range allocatedContainers {
+    log.Println("Launching container: ", *container, " ", container.NodeId.Host, ":", container.NodeId.Port)
+    nmClient, err := yarn_client.CreateAMNMClient(*container.NodeId.Host, int(*container.NodeId.Port))
+    if err != nil {
+      log.Fatal("hadoop_yarn.DialContainerManagementProtocolService: ", err)
+    }
+    log.Println("Successfully created nmClient: ", nmClient)
+    err = nmClient.StartContainer(container, &containerLaunchContext)
+    if err != nil {
+      log.Fatal("nmClient.StartContainer: ", err)
+    }
   }
 
   // Unregister with ResourceManager
