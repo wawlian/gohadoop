@@ -24,7 +24,7 @@ func main() {
 
   // Setup ContainerLaunchContext for the application
   clc := hadoop_yarn.ContainerLaunchContextProto{}
-  clc.Command = []string{"go run /Users/acmurthy/dev/go/src/github.com/gohadooprpc 1>/tmp/stdout 2>/tmp/stderr"}
+  clc.Command = []string{"go run /Users/acmurthy/dev/go/src/github.com/gohadooprpc/hadoop_yarn/examples/dist_shell/applicationmaster.go 1>/tmp/stdout 2>/tmp/stderr"}
   clc.Environment = getEnv()
 
   // Resource for ApplicationMaster
