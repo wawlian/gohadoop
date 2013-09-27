@@ -16,11 +16,9 @@ func main() {
 
   // Create YarnClient
   yarnClient, _ := yarn_client.CreateYarnClient(conf)
-  log.Println("Created client: ", yarnClient)
 
   // Create new application to get ApplicationSubmissionContext
   _, asc, _ := yarnClient.CreateNewApplication()
-  log.Println("appSubmissionContext: ", asc)
 
   // Setup ContainerLaunchContext for the application
   clc := hadoop_yarn.ContainerLaunchContextProto{}

@@ -6,8 +6,8 @@ import (
   "strconv"
   "log"
   "time"
-  hadoop_yarn "github.com/gohadoop/hadoop_yarn"
-  yarn_conf "github.com/gohadoop/hadoop_yarn/conf"
+  "github.com/gohadoop/hadoop_yarn"
+  "github.com/gohadoop/hadoop_yarn/conf"
   "github.com/gohadoop/hadoop_yarn/yarn_client"
 )
 
@@ -47,7 +47,7 @@ func main() {
   }
 
   // Create YarnConfiguration
-  conf, _ := yarn_conf.NewYarnConfiguration()
+  conf, _ := conf.NewYarnConfiguration()
 
   // Create AMRMClient
   rmClient, _ := yarn_client.CreateAMRMClient(conf, applicationAttemptId)
@@ -73,6 +73,6 @@ func main() {
   if err != nil {
     log.Fatal("rmClient.RegisterApplicationMaster ", err)
   }
-  log.Println("Successfully registered application master.")
+  log.Println("Successfully unregistered application master.")
 }
 

@@ -52,7 +52,7 @@ func (c *Client) Call (rpc *hadoop_common.RequestHeaderProto, rpcRequest proto.M
   connectionId := connection_id{user: *c.Ugi.RealUser, protocol: *rpc.DeclaringClassProtocolName}
 
   // Get connection to server
-  log.Println("Connecting...", c)
+  //log.Println("Connecting...", c)
   conn, err := getConnection(c, &connectionId)
   if err != nil {
     return err
@@ -81,11 +81,6 @@ func getConnection (c *Client, connectionId *connection_id) (*connection, error)
   // Try to re-use an existing connection
   connectionPool.RLock()
   con := connectionPool.connections[*connectionId]
-  if con != nil {
-    log.Println("Found connection in connectionPool!")
-  } else {
-    log.Println("Couldn't find connection in connectionPool!")
-  }
   connectionPool.RUnlock()
   
   // If necessary, create a new connection and save it in the connection-pool
@@ -98,7 +93,6 @@ func getConnection (c *Client, connectionId *connection_id) (*connection, error)
     }
 
     connectionPool.Lock()
-    log.Println("Saving connection in connectionPool")
     connectionPool.connections[*connectionId] = con
     connectionPool.Unlock()
 
@@ -217,7 +211,7 @@ func sizeVarint(x int) (n int) {
 }
 
 func sendRequest (c *Client, conn *connection, rpcCall *call) (error) {
-  log.Println("About to call RPC: ", rpcCall.procedure)
+  //log.Println("About to call RPC: ", rpcCall.procedure)
 
   // 0. RpcRequestHeaderProto
   var clientId [16]byte = [16]byte(*c.ClientId)
@@ -269,7 +263,7 @@ func sendRequest (c *Client, conn *connection, rpcCall *call) (error) {
     return err
   }
 
-  log.Println("Succesfully sent request of length: ", totalLength)
+  //log.Println("Succesfully sent request of length: ", totalLength)
 
   return nil
 }
@@ -323,7 +317,7 @@ func (c *Client) readResponse (conn *connection, rpcCall *call) (error) {
     log.Fatal("readDelimited(responseBytes, rpcResponseHeaderProto)", err)
     return err
   }
-  log.Println("Received rpcResponseHeaderProto = ", rpcResponseHeaderProto)
+  //log.Println("Received rpcResponseHeaderProto = ", rpcResponseHeaderProto)
 
   err = c.checkRpcHeader(&rpcResponseHeaderProto)
   if err != nil {
