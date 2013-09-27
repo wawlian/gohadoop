@@ -62,9 +62,10 @@ func main() {
   log.Println("Successfully registered application master.")
 
   // Add resource requests
+  numContainers := int32(1)
   memory := int32(128)
   resource := hadoop_yarn.ResourceProto{Memory: &memory}
-  rmClient.AddRequest(1, "*", &resource, 1)
+  rmClient.AddRequest(1, "*", &resource, numContainers)
  
   // Now call ResourceManager.allocate
   allocateResponse, err := rmClient.Allocate()
@@ -73,17 +74,23 @@ func main() {
   }
   log.Println("#containers allocated: ", len(allocateResponse.AllocatedContainers)) 
 
-  // Sleep for a while
-  log.Println("Sleeping...")
-  time.Sleep(3 * time.Second)
-  log.Println("Sleeping... done!")
+  numAllocatedContainers := int32(0)
+  allocatedContainers := []*hadoop_yarn.ContainerProto{}
+  for numAllocatedContainers < numContainers  {
+    // Sleep for a while
+    log.Println("Sleeping...")
+    time.Sleep(3 * time.Second)
+    log.Println("Sleeping... done!")
 
-  // Try to get containers now...
-  allocateResponse, err = rmClient.Allocate()
-  if err == nil {
-    log.Println("allocateResponse: ", *allocateResponse)
+    // Try to get containers now...
+    allocateResponse, err = rmClient.Allocate()
+    if err == nil {
+      log.Println("allocateResponse: ", *allocateResponse)
+    }
+    numAllocatedContainers += int32(len(allocateResponse.AllocatedContainers))
+    log.Println("#containers allocated: ", copy(allocatedContainers, allocateResponse.AllocatedContainers))
+    log.Println("Total #containers allocated: ", numAllocatedContainers)
   }
-  log.Println("#containers allocated: ", len(allocateResponse.AllocatedContainers)) 
 
   // Unregister with ResourceManager
   log.Println("About to unregister application master.")
