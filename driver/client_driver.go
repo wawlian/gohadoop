@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/gohadoop"
+	"github.com/hortonworks/gohadoop"
 	"github.com/hortonworks/gohadoop/hadoop_common"
 	"github.com/hortonworks/gohadoop/hadoop_common/ipc/client"
 	"github.com/hortonworks/gohadoop/hadoop_yarn"
