@@ -3,8 +3,8 @@ package yarn_client
 import (
   "log"
   "sync"
-  "github.com/gohadoop/hadoop_yarn"
-  yarn_conf "github.com/gohadoop/hadoop_yarn/conf"
+  "github.com/hortonworks/gohadoop/hadoop_yarn"
+  yarn_conf "github.com/hortonworks/gohadoop/hadoop_yarn/conf"
 )
 
 type AMRMClient struct {
