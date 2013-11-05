@@ -4,10 +4,10 @@ import (
   "os"
   "log"
   "time"
-  hadoop_conf "github.com/gohadoop/hadoop_common/conf"
-  hadoop_yarn "github.com/gohadoop/hadoop_yarn"
-  yarn_conf "github.com/gohadoop/hadoop_yarn/conf"
-  "github.com/gohadoop/hadoop_yarn/yarn_client"
+  hadoop_conf "github.com/hortonworks/gohadoop/hadoop_common/conf"
+  hadoop_yarn "github.com/hortonworks/gohadoop/hadoop_yarn"
+  yarn_conf "github.com/hortonworks/gohadoop/hadoop_yarn/conf"
+  "github.com/hortonworks/gohadoop/hadoop_yarn/yarn_client"
 )
 
 func main() {
@@ -22,7 +22,7 @@ func main() {
 
   // Setup ContainerLaunchContext for the application
   clc := hadoop_yarn.ContainerLaunchContextProto{}
-  clc.Command = []string{"go run /Users/acmurthy/dev/go/src/github.com/gohadoop/hadoop_yarn/examples/dist_shell/applicationmaster.go 1>/tmp/stdout 2>/tmp/stderr"}
+  clc.Command = []string{"go run /Users/acmurthy/dev/go/src/github.com/hortonworks/gohadoop/hadoop_yarn/examples/dist_shell/applicationmaster.go 1>/tmp/stdout 2>/tmp/stderr"}
   clc.Environment = getEnv()
 
   // Resource for ApplicationMaster
