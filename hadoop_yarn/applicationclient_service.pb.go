@@ -25,6 +25,7 @@ func init() {
 type ApplicationClientProtocolService interface {
 	GetNewApplication(in *GetNewApplicationRequestProto, out *GetNewApplicationResponseProto) error
 	GetApplicationReport(in *GetApplicationReportRequestProto, out *GetApplicationReportResponseProto) error
+	GetApplicationAttemptReport(in *GetApplicationAttemptReportRequestProto, out *GetApplicationAttemptReportResponseProto) error
 	SubmitApplication(in *SubmitApplicationRequestProto, out *SubmitApplicationResponseProto) error
 	ForceKillApplication(in *KillApplicationRequestProto, out *KillApplicationResponseProto) error
 	GetClusterMetrics(in *GetClusterMetricsRequestProto, out *GetClusterMetricsResponseProto) error
@@ -45,6 +46,9 @@ func (c *ApplicationClientProtocolServiceClient) GetNewApplication(in *GetNewApp
 	return c.Call(gohadoop.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
 }
 func (c *ApplicationClientProtocolServiceClient) GetApplicationReport(in *GetApplicationReportRequestProto, out *GetApplicationReportResponseProto) error {
+	return c.Call(gohadoop.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
+}
+func (c *ApplicationClientProtocolServiceClient) GetApplicationAttemptReport(in *GetApplicationAttemptReportRequestProto, out *GetApplicationAttemptReportResponseProto) error {
 	return c.Call(gohadoop.GetCalleeRPCRequestHeaderProto(&APPLICATION_CLIENT_PROTOCOL), in, out)
 }
 func (c *ApplicationClientProtocolServiceClient) SubmitApplication(in *SubmitApplicationRequestProto, out *SubmitApplicationResponseProto) error {

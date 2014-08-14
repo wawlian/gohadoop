@@ -38,3 +38,10 @@ func (c *YarnClient) GetApplicationReport (applicationId *hadoop_yarn.Applicatio
   return response.ApplicationReport, err
 }
 
+func (c *YarnClient) GetApplicationAttemptReport (applicationAttemptId *hadoop_yarn.ApplicationAttemptIdProto) (*hadoop_yarn.ApplicationAttemptReportProto, error) {
+  request := hadoop_yarn.GetApplicationAttemptReportRequestProto{ApplicationAttemptId: applicationAttemptId}
+  response := hadoop_yarn.GetApplicationAttemptReportResponseProto{}
+  err := c.client.GetApplicationAttemptReport(&request, &response)
+  return response.ApplicationAttemptReport, err
+}
+
