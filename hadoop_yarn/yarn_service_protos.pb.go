@@ -14,6 +14,45 @@ var _ = proto.Marshal
 var _ = &json.SyntaxError{}
 var _ = math.Inf
 
+type ApplicationsRequestScopeProto int32
+
+const (
+	ApplicationsRequestScopeProto_ALL      ApplicationsRequestScopeProto = 0
+	ApplicationsRequestScopeProto_VIEWABLE ApplicationsRequestScopeProto = 1
+	ApplicationsRequestScopeProto_OWN      ApplicationsRequestScopeProto = 2
+)
+
+var ApplicationsRequestScopeProto_name = map[int32]string{
+	0: "ALL",
+	1: "VIEWABLE",
+	2: "OWN",
+}
+var ApplicationsRequestScopeProto_value = map[string]int32{
+	"ALL":      0,
+	"VIEWABLE": 1,
+	"OWN":      2,
+}
+
+func (x ApplicationsRequestScopeProto) Enum() *ApplicationsRequestScopeProto {
+	p := new(ApplicationsRequestScopeProto)
+	*p = x
+	return p
+}
+func (x ApplicationsRequestScopeProto) String() string {
+	return proto.EnumName(ApplicationsRequestScopeProto_name, int32(x))
+}
+func (x ApplicationsRequestScopeProto) MarshalJSON() ([]byte, error) {
+	return json.Marshal(x.String())
+}
+func (x *ApplicationsRequestScopeProto) UnmarshalJSON(data []byte) error {
+	value, err := proto.UnmarshalJSONEnum(ApplicationsRequestScopeProto_value, data, "ApplicationsRequestScopeProto")
+	if err != nil {
+		return err
+	}
+	*x = ApplicationsRequestScopeProto(value)
+	return nil
+}
+
 // ////////////////////////////////////////////////////
 // ///// AM_RM_Protocol ///////////////////////////////
 // ////////////////////////////////////////////////////
@@ -58,10 +97,13 @@ func (m *RegisterApplicationMasterRequestProto) GetApplicationAttemptId() *Appli
 }
 
 type RegisterApplicationMasterResponseProto struct {
-	MaximumCapability        *ResourceProto            `protobuf:"bytes,1,opt,name=maximumCapability" json:"maximumCapability,omitempty"`
-	ClientToAmTokenMasterKey []byte                    `protobuf:"bytes,2,opt,name=client_to_am_token_master_key" json:"client_to_am_token_master_key,omitempty"`
-	Application_ACLs         []*ApplicationACLMapProto `protobuf:"bytes,3,rep,name=application_ACLs" json:"application_ACLs,omitempty"`
-	XXX_unrecognized         []byte                    `json:"-"`
+	MaximumCapability              *ResourceProto            `protobuf:"bytes,1,opt,name=maximumCapability" json:"maximumCapability,omitempty"`
+	ClientToAmTokenMasterKey       []byte                    `protobuf:"bytes,2,opt,name=client_to_am_token_master_key" json:"client_to_am_token_master_key,omitempty"`
+	Application_ACLs               []*ApplicationACLMapProto `protobuf:"bytes,3,rep,name=application_ACLs" json:"application_ACLs,omitempty"`
+	ContainersFromPreviousAttempts []*ContainerProto         `protobuf:"bytes,4,rep,name=containers_from_previous_attempts" json:"containers_from_previous_attempts,omitempty"`
+	Queue                          *string                   `protobuf:"bytes,5,opt,name=queue" json:"queue,omitempty"`
+	NmTokensFromPreviousAttempts   []*NMTokenProto           `protobuf:"bytes,6,rep,name=nm_tokens_from_previous_attempts" json:"nm_tokens_from_previous_attempts,omitempty"`
+	XXX_unrecognized               []byte                    `json:"-"`
 }
 
 func (m *RegisterApplicationMasterResponseProto) Reset() {
@@ -87,6 +129,27 @@ func (m *RegisterApplicationMasterResponseProto) GetClientToAmTokenMasterKey() [
 func (m *RegisterApplicationMasterResponseProto) GetApplication_ACLs() []*ApplicationACLMapProto {
 	if m != nil {
 		return m.Application_ACLs
+	}
+	return nil
+}
+
+func (m *RegisterApplicationMasterResponseProto) GetContainersFromPreviousAttempts() []*ContainerProto {
+	if m != nil {
+		return m.ContainersFromPreviousAttempts
+	}
+	return nil
+}
+
+func (m *RegisterApplicationMasterResponseProto) GetQueue() string {
+	if m != nil && m.Queue != nil {
+		return *m.Queue
+	}
+	return ""
+}
+
+func (m *RegisterApplicationMasterResponseProto) GetNmTokensFromPreviousAttempts() []*NMTokenProto {
+	if m != nil {
+		return m.NmTokensFromPreviousAttempts
 	}
 	return nil
 }
@@ -150,13 +213,14 @@ func (m *FinishApplicationMasterResponseProto) GetIsUnregistered() bool {
 }
 
 type AllocateRequestProto struct {
-	Ask                  []*ResourceRequestProto        `protobuf:"bytes,1,rep,name=ask" json:"ask,omitempty"`
-	Release              []*ContainerIdProto            `protobuf:"bytes,2,rep,name=release" json:"release,omitempty"`
-	BlacklistRequest     *ResourceBlacklistRequestProto `protobuf:"bytes,3,opt,name=blacklist_request" json:"blacklist_request,omitempty"`
-	ResponseId           *int32                         `protobuf:"varint,4,opt,name=response_id" json:"response_id,omitempty"`
-	Progress             *float32                       `protobuf:"fixed32,5,opt,name=progress" json:"progress,omitempty"`
-	ApplicationAttemptId *ApplicationAttemptIdProto     `protobuf:"bytes,6,opt,name=application_attempt_id" json:"application_attempt_id,omitempty"`
-	XXX_unrecognized     []byte                         `json:"-"`
+	Ask                  []*ResourceRequestProto                  `protobuf:"bytes,1,rep,name=ask" json:"ask,omitempty"`
+	Release              []*ContainerIdProto                      `protobuf:"bytes,2,rep,name=release" json:"release,omitempty"`
+	BlacklistRequest     *ResourceBlacklistRequestProto           `protobuf:"bytes,3,opt,name=blacklist_request" json:"blacklist_request,omitempty"`
+	ResponseId           *int32                                   `protobuf:"varint,4,opt,name=response_id" json:"response_id,omitempty"`
+	Progress             *float32                                 `protobuf:"fixed32,5,opt,name=progress" json:"progress,omitempty"`
+	IncreaseRequest      []*ContainerResourceIncreaseRequestProto `protobuf:"bytes,6,rep,name=increase_request" json:"increase_request,omitempty"`
+	ApplicationAttemptId *ApplicationAttemptIdProto               `protobuf:"bytes,7,opt,name=application_attempt_id" json:"application_attempt_id,omitempty"`
+	XXX_unrecognized     []byte                                   `json:"-"`
 }
 
 func (m *AllocateRequestProto) Reset()         { *m = AllocateRequestProto{} }
@@ -198,6 +262,13 @@ func (m *AllocateRequestProto) GetProgress() float32 {
 	return 0
 }
 
+func (m *AllocateRequestProto) GetIncreaseRequest() []*ContainerResourceIncreaseRequestProto {
+	if m != nil {
+		return m.IncreaseRequest
+	}
+	return nil
+}
+
 func (m *AllocateRequestProto) GetApplicationAttemptId() *ApplicationAttemptIdProto {
 	if m != nil {
 		return m.ApplicationAttemptId
@@ -230,16 +301,19 @@ func (m *NMTokenProto) GetToken() *hadoop_common.TokenProto {
 }
 
 type AllocateResponseProto struct {
-	AMCommand                  *AMCommandProto         `protobuf:"varint,1,opt,name=a_m_command,enum=hadoop.yarn.AMCommandProto" json:"a_m_command,omitempty"`
-	ResponseId                 *int32                  `protobuf:"varint,2,opt,name=response_id" json:"response_id,omitempty"`
-	AllocatedContainers        []*ContainerProto       `protobuf:"bytes,3,rep,name=allocated_containers" json:"allocated_containers,omitempty"`
-	CompletedContainerStatuses []*ContainerStatusProto `protobuf:"bytes,4,rep,name=completed_container_statuses" json:"completed_container_statuses,omitempty"`
-	Limit                      *ResourceProto          `protobuf:"bytes,5,opt,name=limit" json:"limit,omitempty"`
-	UpdatedNodes               []*NodeReportProto      `protobuf:"bytes,6,rep,name=updated_nodes" json:"updated_nodes,omitempty"`
-	NumClusterNodes            *int32                  `protobuf:"varint,7,opt,name=num_cluster_nodes" json:"num_cluster_nodes,omitempty"`
-	Preempt                    *PreemptionMessageProto `protobuf:"bytes,8,opt,name=preempt" json:"preempt,omitempty"`
-	NmTokens                   []*NMTokenProto         `protobuf:"bytes,9,rep,name=nm_tokens" json:"nm_tokens,omitempty"`
-	XXX_unrecognized           []byte                  `json:"-"`
+	AMCommand                  *AMCommandProto                   `protobuf:"varint,1,opt,name=a_m_command,enum=hadoop.yarn.AMCommandProto" json:"a_m_command,omitempty"`
+	ResponseId                 *int32                            `protobuf:"varint,2,opt,name=response_id" json:"response_id,omitempty"`
+	AllocatedContainers        []*ContainerProto                 `protobuf:"bytes,3,rep,name=allocated_containers" json:"allocated_containers,omitempty"`
+	CompletedContainerStatuses []*ContainerStatusProto           `protobuf:"bytes,4,rep,name=completed_container_statuses" json:"completed_container_statuses,omitempty"`
+	Limit                      *ResourceProto                    `protobuf:"bytes,5,opt,name=limit" json:"limit,omitempty"`
+	UpdatedNodes               []*NodeReportProto                `protobuf:"bytes,6,rep,name=updated_nodes" json:"updated_nodes,omitempty"`
+	NumClusterNodes            *int32                            `protobuf:"varint,7,opt,name=num_cluster_nodes" json:"num_cluster_nodes,omitempty"`
+	Preempt                    *PreemptionMessageProto           `protobuf:"bytes,8,opt,name=preempt" json:"preempt,omitempty"`
+	NmTokens                   []*NMTokenProto                   `protobuf:"bytes,9,rep,name=nm_tokens" json:"nm_tokens,omitempty"`
+	IncreasedContainers        []*ContainerResourceIncreaseProto `protobuf:"bytes,10,rep,name=increased_containers" json:"increased_containers,omitempty"`
+	DecreasedContainers        []*ContainerResourceDecreaseProto `protobuf:"bytes,11,rep,name=decreased_containers" json:"decreased_containers,omitempty"`
+	AmRmToken                  *hadoop_common.TokenProto         `protobuf:"bytes,12,opt,name=am_rm_token" json:"am_rm_token,omitempty"`
+	XXX_unrecognized           []byte                            `json:"-"`
 }
 
 func (m *AllocateResponseProto) Reset()         { *m = AllocateResponseProto{} }
@@ -305,6 +379,27 @@ func (m *AllocateResponseProto) GetPreempt() *PreemptionMessageProto {
 func (m *AllocateResponseProto) GetNmTokens() []*NMTokenProto {
 	if m != nil {
 		return m.NmTokens
+	}
+	return nil
+}
+
+func (m *AllocateResponseProto) GetIncreasedContainers() []*ContainerResourceIncreaseProto {
+	if m != nil {
+		return m.IncreasedContainers
+	}
+	return nil
+}
+
+func (m *AllocateResponseProto) GetDecreasedContainers() []*ContainerResourceDecreaseProto {
+	if m != nil {
+		return m.DecreasedContainers
+	}
+	return nil
+}
+
+func (m *AllocateResponseProto) GetAmRmToken() *hadoop_common.TokenProto {
+	if m != nil {
+		return m.AmRmToken
 	}
 	return nil
 }
@@ -414,12 +509,22 @@ func (m *KillApplicationRequestProto) GetApplicationId() *ApplicationIdProto {
 }
 
 type KillApplicationResponseProto struct {
+	IsKillCompleted  *bool  `protobuf:"varint,1,opt,name=is_kill_completed,def=0" json:"is_kill_completed,omitempty"`
 	XXX_unrecognized []byte `json:"-"`
 }
 
 func (m *KillApplicationResponseProto) Reset()         { *m = KillApplicationResponseProto{} }
 func (m *KillApplicationResponseProto) String() string { return proto.CompactTextString(m) }
 func (*KillApplicationResponseProto) ProtoMessage()    {}
+
+const Default_KillApplicationResponseProto_IsKillCompleted bool = false
+
+func (m *KillApplicationResponseProto) GetIsKillCompleted() bool {
+	if m != nil && m.IsKillCompleted != nil {
+		return *m.IsKillCompleted
+	}
+	return Default_KillApplicationResponseProto_IsKillCompleted
+}
 
 type GetClusterMetricsRequestProto struct {
 	XXX_unrecognized []byte `json:"-"`
@@ -445,15 +550,62 @@ func (m *GetClusterMetricsResponseProto) GetClusterMetrics() *YarnClusterMetrics
 	return nil
 }
 
+type MoveApplicationAcrossQueuesRequestProto struct {
+	ApplicationId    *ApplicationIdProto `protobuf:"bytes,1,req,name=application_id" json:"application_id,omitempty"`
+	TargetQueue      *string             `protobuf:"bytes,2,req,name=target_queue" json:"target_queue,omitempty"`
+	XXX_unrecognized []byte              `json:"-"`
+}
+
+func (m *MoveApplicationAcrossQueuesRequestProto) Reset() {
+	*m = MoveApplicationAcrossQueuesRequestProto{}
+}
+func (m *MoveApplicationAcrossQueuesRequestProto) String() string { return proto.CompactTextString(m) }
+func (*MoveApplicationAcrossQueuesRequestProto) ProtoMessage()    {}
+
+func (m *MoveApplicationAcrossQueuesRequestProto) GetApplicationId() *ApplicationIdProto {
+	if m != nil {
+		return m.ApplicationId
+	}
+	return nil
+}
+
+func (m *MoveApplicationAcrossQueuesRequestProto) GetTargetQueue() string {
+	if m != nil && m.TargetQueue != nil {
+		return *m.TargetQueue
+	}
+	return ""
+}
+
+type MoveApplicationAcrossQueuesResponseProto struct {
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (m *MoveApplicationAcrossQueuesResponseProto) Reset() {
+	*m = MoveApplicationAcrossQueuesResponseProto{}
+}
+func (m *MoveApplicationAcrossQueuesResponseProto) String() string { return proto.CompactTextString(m) }
+func (*MoveApplicationAcrossQueuesResponseProto) ProtoMessage()    {}
+
 type GetApplicationsRequestProto struct {
-	ApplicationTypes  []string                    `protobuf:"bytes,1,rep,name=application_types" json:"application_types,omitempty"`
-	ApplicationStates []YarnApplicationStateProto `protobuf:"varint,2,rep,name=application_states,enum=hadoop.yarn.YarnApplicationStateProto" json:"application_states,omitempty"`
-	XXX_unrecognized  []byte                      `json:"-"`
+	ApplicationTypes  []string                       `protobuf:"bytes,1,rep,name=application_types" json:"application_types,omitempty"`
+	ApplicationStates []YarnApplicationStateProto    `protobuf:"varint,2,rep,name=application_states,enum=hadoop.yarn.YarnApplicationStateProto" json:"application_states,omitempty"`
+	Users             []string                       `protobuf:"bytes,3,rep,name=users" json:"users,omitempty"`
+	Queues            []string                       `protobuf:"bytes,4,rep,name=queues" json:"queues,omitempty"`
+	Limit             *int64                         `protobuf:"varint,5,opt,name=limit" json:"limit,omitempty"`
+	StartBegin        *int64                         `protobuf:"varint,6,opt,name=start_begin" json:"start_begin,omitempty"`
+	StartEnd          *int64                         `protobuf:"varint,7,opt,name=start_end" json:"start_end,omitempty"`
+	FinishBegin       *int64                         `protobuf:"varint,8,opt,name=finish_begin" json:"finish_begin,omitempty"`
+	FinishEnd         *int64                         `protobuf:"varint,9,opt,name=finish_end" json:"finish_end,omitempty"`
+	ApplicationTags   []string                       `protobuf:"bytes,10,rep,name=applicationTags" json:"applicationTags,omitempty"`
+	Scope             *ApplicationsRequestScopeProto `protobuf:"varint,11,opt,name=scope,enum=hadoop.yarn.ApplicationsRequestScopeProto,def=0" json:"scope,omitempty"`
+	XXX_unrecognized  []byte                         `json:"-"`
 }
 
 func (m *GetApplicationsRequestProto) Reset()         { *m = GetApplicationsRequestProto{} }
 func (m *GetApplicationsRequestProto) String() string { return proto.CompactTextString(m) }
 func (*GetApplicationsRequestProto) ProtoMessage()    {}
+
+const Default_GetApplicationsRequestProto_Scope ApplicationsRequestScopeProto = ApplicationsRequestScopeProto_ALL
 
 func (m *GetApplicationsRequestProto) GetApplicationTypes() []string {
 	if m != nil {
@@ -467,6 +619,69 @@ func (m *GetApplicationsRequestProto) GetApplicationStates() []YarnApplicationSt
 		return m.ApplicationStates
 	}
 	return nil
+}
+
+func (m *GetApplicationsRequestProto) GetUsers() []string {
+	if m != nil {
+		return m.Users
+	}
+	return nil
+}
+
+func (m *GetApplicationsRequestProto) GetQueues() []string {
+	if m != nil {
+		return m.Queues
+	}
+	return nil
+}
+
+func (m *GetApplicationsRequestProto) GetLimit() int64 {
+	if m != nil && m.Limit != nil {
+		return *m.Limit
+	}
+	return 0
+}
+
+func (m *GetApplicationsRequestProto) GetStartBegin() int64 {
+	if m != nil && m.StartBegin != nil {
+		return *m.StartBegin
+	}
+	return 0
+}
+
+func (m *GetApplicationsRequestProto) GetStartEnd() int64 {
+	if m != nil && m.StartEnd != nil {
+		return *m.StartEnd
+	}
+	return 0
+}
+
+func (m *GetApplicationsRequestProto) GetFinishBegin() int64 {
+	if m != nil && m.FinishBegin != nil {
+		return *m.FinishBegin
+	}
+	return 0
+}
+
+func (m *GetApplicationsRequestProto) GetFinishEnd() int64 {
+	if m != nil && m.FinishEnd != nil {
+		return *m.FinishEnd
+	}
+	return 0
+}
+
+func (m *GetApplicationsRequestProto) GetApplicationTags() []string {
+	if m != nil {
+		return m.ApplicationTags
+	}
+	return nil
+}
+
+func (m *GetApplicationsRequestProto) GetScope() ApplicationsRequestScopeProto {
+	if m != nil && m.Scope != nil {
+		return *m.Scope
+	}
+	return Default_GetApplicationsRequestProto_Scope
 }
 
 type GetApplicationsResponseProto struct {
@@ -854,5 +1069,138 @@ func (m *GetContainerStatusesResponseProto) GetFailedRequests() []*ContainerExce
 	return nil
 }
 
+type GetApplicationAttemptReportRequestProto struct {
+	ApplicationAttemptId *ApplicationAttemptIdProto `protobuf:"bytes,1,opt,name=application_attempt_id" json:"application_attempt_id,omitempty"`
+	XXX_unrecognized     []byte                     `json:"-"`
+}
+
+func (m *GetApplicationAttemptReportRequestProto) Reset() {
+	*m = GetApplicationAttemptReportRequestProto{}
+}
+func (m *GetApplicationAttemptReportRequestProto) String() string { return proto.CompactTextString(m) }
+func (*GetApplicationAttemptReportRequestProto) ProtoMessage()    {}
+
+func (m *GetApplicationAttemptReportRequestProto) GetApplicationAttemptId() *ApplicationAttemptIdProto {
+	if m != nil {
+		return m.ApplicationAttemptId
+	}
+	return nil
+}
+
+type GetApplicationAttemptReportResponseProto struct {
+	ApplicationAttemptReport *ApplicationAttemptReportProto `protobuf:"bytes,1,opt,name=application_attempt_report" json:"application_attempt_report,omitempty"`
+	XXX_unrecognized         []byte                         `json:"-"`
+}
+
+func (m *GetApplicationAttemptReportResponseProto) Reset() {
+	*m = GetApplicationAttemptReportResponseProto{}
+}
+func (m *GetApplicationAttemptReportResponseProto) String() string { return proto.CompactTextString(m) }
+func (*GetApplicationAttemptReportResponseProto) ProtoMessage()    {}
+
+func (m *GetApplicationAttemptReportResponseProto) GetApplicationAttemptReport() *ApplicationAttemptReportProto {
+	if m != nil {
+		return m.ApplicationAttemptReport
+	}
+	return nil
+}
+
+type GetApplicationAttemptsRequestProto struct {
+	ApplicationId    *ApplicationIdProto `protobuf:"bytes,1,opt,name=application_id" json:"application_id,omitempty"`
+	XXX_unrecognized []byte              `json:"-"`
+}
+
+func (m *GetApplicationAttemptsRequestProto) Reset()         { *m = GetApplicationAttemptsRequestProto{} }
+func (m *GetApplicationAttemptsRequestProto) String() string { return proto.CompactTextString(m) }
+func (*GetApplicationAttemptsRequestProto) ProtoMessage()    {}
+
+func (m *GetApplicationAttemptsRequestProto) GetApplicationId() *ApplicationIdProto {
+	if m != nil {
+		return m.ApplicationId
+	}
+	return nil
+}
+
+type GetApplicationAttemptsResponseProto struct {
+	ApplicationAttempts []*ApplicationAttemptReportProto `protobuf:"bytes,1,rep,name=application_attempts" json:"application_attempts,omitempty"`
+	XXX_unrecognized    []byte                           `json:"-"`
+}
+
+func (m *GetApplicationAttemptsResponseProto) Reset()         { *m = GetApplicationAttemptsResponseProto{} }
+func (m *GetApplicationAttemptsResponseProto) String() string { return proto.CompactTextString(m) }
+func (*GetApplicationAttemptsResponseProto) ProtoMessage()    {}
+
+func (m *GetApplicationAttemptsResponseProto) GetApplicationAttempts() []*ApplicationAttemptReportProto {
+	if m != nil {
+		return m.ApplicationAttempts
+	}
+	return nil
+}
+
+type GetContainerReportRequestProto struct {
+	ContainerId      *ContainerIdProto `protobuf:"bytes,1,opt,name=container_id" json:"container_id,omitempty"`
+	XXX_unrecognized []byte            `json:"-"`
+}
+
+func (m *GetContainerReportRequestProto) Reset()         { *m = GetContainerReportRequestProto{} }
+func (m *GetContainerReportRequestProto) String() string { return proto.CompactTextString(m) }
+func (*GetContainerReportRequestProto) ProtoMessage()    {}
+
+func (m *GetContainerReportRequestProto) GetContainerId() *ContainerIdProto {
+	if m != nil {
+		return m.ContainerId
+	}
+	return nil
+}
+
+type GetContainerReportResponseProto struct {
+	ContainerReport  *ContainerReportProto `protobuf:"bytes,1,opt,name=container_report" json:"container_report,omitempty"`
+	XXX_unrecognized []byte                `json:"-"`
+}
+
+func (m *GetContainerReportResponseProto) Reset()         { *m = GetContainerReportResponseProto{} }
+func (m *GetContainerReportResponseProto) String() string { return proto.CompactTextString(m) }
+func (*GetContainerReportResponseProto) ProtoMessage()    {}
+
+func (m *GetContainerReportResponseProto) GetContainerReport() *ContainerReportProto {
+	if m != nil {
+		return m.ContainerReport
+	}
+	return nil
+}
+
+type GetContainersRequestProto struct {
+	ApplicationAttemptId *ApplicationAttemptIdProto `protobuf:"bytes,1,opt,name=application_attempt_id" json:"application_attempt_id,omitempty"`
+	XXX_unrecognized     []byte                     `json:"-"`
+}
+
+func (m *GetContainersRequestProto) Reset()         { *m = GetContainersRequestProto{} }
+func (m *GetContainersRequestProto) String() string { return proto.CompactTextString(m) }
+func (*GetContainersRequestProto) ProtoMessage()    {}
+
+func (m *GetContainersRequestProto) GetApplicationAttemptId() *ApplicationAttemptIdProto {
+	if m != nil {
+		return m.ApplicationAttemptId
+	}
+	return nil
+}
+
+type GetContainersResponseProto struct {
+	Containers       []*ContainerReportProto `protobuf:"bytes,1,rep,name=containers" json:"containers,omitempty"`
+	XXX_unrecognized []byte                  `json:"-"`
+}
+
+func (m *GetContainersResponseProto) Reset()         { *m = GetContainersResponseProto{} }
+func (m *GetContainersResponseProto) String() string { return proto.CompactTextString(m) }
+func (*GetContainersResponseProto) ProtoMessage()    {}
+
+func (m *GetContainersResponseProto) GetContainers() []*ContainerReportProto {
+	if m != nil {
+		return m.Containers
+	}
+	return nil
+}
+
 func init() {
+	proto.RegisterEnum("hadoop.yarn.ApplicationsRequestScopeProto", ApplicationsRequestScopeProto_name, ApplicationsRequestScopeProto_value)
 }
