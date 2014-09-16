@@ -6,6 +6,7 @@ import (
 	"github.com/hortonworks/gohadoop/hadoop_yarn/yarn_client"
 	"log"
 	"time"
+  "github.com/hortonworks/gohadoop/hadoop_common"
 )
 
 func main() {
@@ -56,7 +57,15 @@ func main() {
       log.Fatal("Application in state ", appState)
     }
   }
-    log.Println("Application in state ", appState)
+
+  amRmToken := appReport.GetAmRmToken()
+
+  if(amRmToken != nil) {
+    hadoop_common.GetCurrentUser().AddUserToken(amRmToken)
+    log.Printf("Saved AmRmToken=%v\n", amRmToken);
+  }
+
+  log.Println("Application in state ", appState)
 
 	// Create AMRMClient
   var attemptId int32 
