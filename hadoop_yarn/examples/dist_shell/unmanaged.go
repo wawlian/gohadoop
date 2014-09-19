@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/hortonworks/gohadoop/hadoop_common/security"
 	"github.com/hortonworks/gohadoop/hadoop_yarn"
 	"github.com/hortonworks/gohadoop/hadoop_yarn/conf"
 	"github.com/hortonworks/gohadoop/hadoop_yarn/yarn_client"
@@ -14,68 +15,78 @@ func main() {
 	// Create YarnConfiguration
 	conf, _ := conf.NewYarnConfiguration()
 
-  // Create YarnClient
-  yarnClient, _ := yarn_client.CreateYarnClient(conf)
+	// Create YarnClient
+	yarnClient, _ := yarn_client.CreateYarnClient(conf)
 
-  // Create new application to get ApplicationSubmissionContext
-  _, asc, _ := yarnClient.CreateNewApplication()
+	// Create new application to get ApplicationSubmissionContext
+	_, asc, _ := yarnClient.CreateNewApplication()
 
-  // Some useful information
-  queue := "default"
-  appName := "simple-go-yarn-app"
-  appType := "GO_HADOOP_UNMANAGED"
-  unmanaged := true
-  clc := hadoop_yarn.ContainerLaunchContextProto{}
+	// Some useful information
+	queue := "default"
+	appName := "simple-go-yarn-app"
+	appType := "GO_HADOOP_UNMANAGED"
+	unmanaged := true
+	clc := hadoop_yarn.ContainerLaunchContextProto{}
 
-  // Setup ApplicationSubmissionContext for the application
-  asc.AmContainerSpec = &clc
-  asc.ApplicationName = &appName
-  asc.Queue = &queue
-  asc.ApplicationType = &appType
-  asc.UnmanagedAm = &unmanaged
+	// Setup ApplicationSubmissionContext for the application
+	asc.AmContainerSpec = &clc
+	asc.ApplicationName = &appName
+	asc.Queue = &queue
+	asc.ApplicationType = &appType
+	asc.UnmanagedAm = &unmanaged
 
-  // Submit!
-  err = yarnClient.SubmitApplication(asc)
-  if err != nil {
-    log.Fatal("yarnClient.SubmitApplication ", err)
-  }
-  log.Println("Successfully submitted unmanaged application: ", asc.ApplicationId)
-    time.Sleep(1 * time.Second)
+	// Submit!
+	err = yarnClient.SubmitApplication(asc)
+	if err != nil {
+		log.Fatal("yarnClient.SubmitApplication ", err)
+	}
+	log.Println("Successfully submitted unmanaged application: ", asc.ApplicationId)
+	time.Sleep(1 * time.Second)
 
-  appReport, err := yarnClient.GetApplicationReport(asc.ApplicationId)
-  if err != nil {
-    log.Fatal("yarnClient.GetApplicationReport ", err)
-  }
-  appState := appReport.GetYarnApplicationState() 
-  for appState != hadoop_yarn.YarnApplicationStateProto_ACCEPTED {
-    log.Println("Application in state ", appState)
-    time.Sleep(1 * time.Second)
-    appReport, err = yarnClient.GetApplicationReport(asc.ApplicationId)
-    appState = appReport.GetYarnApplicationState() 
-    if (appState == hadoop_yarn.YarnApplicationStateProto_FAILED || appState == hadoop_yarn.YarnApplicationStateProto_KILLED) {
-      log.Fatal("Application in state ", appState)
-    }
-  }
-    log.Println("Application in state ", appState)
+	appReport, err := yarnClient.GetApplicationReport(asc.ApplicationId)
+	if err != nil {
+		log.Fatal("yarnClient.GetApplicationReport ", err)
+	}
+	appState := appReport.GetYarnApplicationState()
+	for appState != hadoop_yarn.YarnApplicationStateProto_ACCEPTED {
+		log.Println("Application in state ", appState)
+		time.Sleep(1 * time.Second)
+		appReport, err = yarnClient.GetApplicationReport(asc.ApplicationId)
+		appState = appReport.GetYarnApplicationState()
+		if appState == hadoop_yarn.YarnApplicationStateProto_FAILED || appState == hadoop_yarn.YarnApplicationStateProto_KILLED {
+			log.Fatal("Application in state ", appState)
+		}
+	}
+
+	amRmToken := appReport.GetAmRmToken()
+
+	if amRmToken != nil {
+		savedAmRmToken := *amRmToken
+		service, _ := conf.GetRMSchedulerAddress()
+		savedAmRmToken.Service = &service
+		security.GetCurrentUser().AddUserToken(&savedAmRmToken)
+	}
+
+	log.Println("Application in state ", appState)
 
 	// Create AMRMClient
-  var attemptId int32 
-  attemptId = 1 
-  applicationAttemptId := hadoop_yarn.ApplicationAttemptIdProto{ApplicationId: asc.ApplicationId, AttemptId: &attemptId}
+	var attemptId int32
+	attemptId = 1
+	applicationAttemptId := hadoop_yarn.ApplicationAttemptIdProto{ApplicationId: asc.ApplicationId, AttemptId: &attemptId}
 
 	rmClient, _ := yarn_client.CreateAMRMClient(conf, &applicationAttemptId)
 	log.Println("Created RM client: ", rmClient)
 
-  // Wait for ApplicationAttempt to be in Launched state
-  appAttemptReport, err := yarnClient.GetApplicationAttemptReport(&applicationAttemptId)
-  appAttemptState := appAttemptReport.GetYarnApplicationAttemptState()
-  for appAttemptState != hadoop_yarn.YarnApplicationAttemptStateProto_APP_ATTEMPT_LAUNCHED { 
-    log.Println("ApplicationAttempt in state ", appAttemptState)
-    time.Sleep(1 * time.Second)
-    appAttemptReport, err = yarnClient.GetApplicationAttemptReport(&applicationAttemptId)
-    appAttemptState = appAttemptReport.GetYarnApplicationAttemptState() 
-  }
-    log.Println("ApplicationAttempt in state ", appAttemptState)
+	// Wait for ApplicationAttempt to be in Launched state
+	appAttemptReport, err := yarnClient.GetApplicationAttemptReport(&applicationAttemptId)
+	appAttemptState := appAttemptReport.GetYarnApplicationAttemptState()
+	for appAttemptState != hadoop_yarn.YarnApplicationAttemptStateProto_APP_ATTEMPT_LAUNCHED {
+		log.Println("ApplicationAttempt in state ", appAttemptState)
+		time.Sleep(1 * time.Second)
+		appAttemptReport, err = yarnClient.GetApplicationAttemptReport(&applicationAttemptId)
+		appAttemptState = appAttemptReport.GetYarnApplicationAttemptState()
+	}
+	log.Println("ApplicationAttempt in state ", appAttemptState)
 
 	// Register with ResourceManager
 	log.Println("About to register application master.")
