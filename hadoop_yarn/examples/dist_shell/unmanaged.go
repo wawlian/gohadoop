@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/hortonworks/gohadoop/hadoop_common/security"
 	"github.com/hortonworks/gohadoop/hadoop_yarn"
 	"github.com/hortonworks/gohadoop/hadoop_yarn/conf"
@@ -62,6 +63,7 @@ func main() {
 
 	if amRmToken != nil {
 		savedAmRmToken := *amRmToken
+		//in the unmanaged AM scenario, the returned token does NOT have the "service" field set
 		service, _ := conf.GetRMSchedulerAddress()
 		savedAmRmToken.Service = &service
 		security.GetCurrentUser().AddUserToken(&savedAmRmToken)
@@ -123,6 +125,17 @@ func main() {
 			log.Println("allocateResponse: ", *allocateResponse)
 		}
 
+		for _, nmToken := range allocateResponse.GetNmTokens() {
+			if nmToken != nil {
+				savedNmToken := *(nmToken.Token)
+				//service is already available in the nmToken. But, it is
+				serviceStr := fmt.Sprintf("%s%s%d", *nmToken.NodeId.Host, ":", *nmToken.NodeId.Port)
+				savedNmToken.Service = &serviceStr
+				log.Printf("saving token %v for service %v", &savedNmToken, serviceStr)
+				security.GetCurrentUser().AddUserToken(&savedNmToken)
+			}
+		}
+
 		for _, container := range allocateResponse.AllocatedContainers {
 			allocatedContainers[numAllocatedContainers] = container
 			numAllocatedContainers++
@@ -137,12 +150,13 @@ func main() {
 	containerLaunchContext := hadoop_yarn.ContainerLaunchContextProto{Command: []string{"/bin/date"}}
 	log.Println("containerLaunchContext: ", containerLaunchContext)
 	for _, container := range allocatedContainers {
-		log.Println("Launching container: ", *container, " ", container.NodeId.Host, ":", container.NodeId.Port)
+		log.Println("Launching container: ", *container, " ", *container.NodeId.Host, ":", *container.NodeId.Port)
 		nmClient, err := yarn_client.CreateAMNMClient(*container.NodeId.Host, int(*container.NodeId.Port))
 		if err != nil {
 			log.Fatal("hadoop_yarn.DialContainerManagementProtocolService: ", err)
 		}
-		log.Println("Successfully created nmClient: ", nmClient)
+		log.Printf("Successfully created nmClient: %v", nmClient)
+
 		err = nmClient.StartContainer(container, &containerLaunchContext)
 		if err != nil {
 			log.Fatal("nmClient.StartContainer: ", err)
