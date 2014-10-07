@@ -5,12 +5,14 @@ import (
 	yarn_conf "github.com/hortonworks/gohadoop/hadoop_yarn/conf"
 	"log"
 	"sync"
+	"time"
 )
 
 type AMRMClient struct {
 	applicationAttemptId *hadoop_yarn.ApplicationAttemptIdProto
 	client               hadoop_yarn.ApplicationMasterProtocolService
 	responseId           int32
+	conf                 yarn_conf.YarnConfiguration
 }
 
 type resource_to_request struct {
@@ -27,13 +29,20 @@ var allocationRequests = struct {
 
 func CreateAMRMClient(conf yarn_conf.YarnConfiguration, applicationAttemptId *hadoop_yarn.ApplicationAttemptIdProto) (*AMRMClient, error) {
 	c, err := hadoop_yarn.DialApplicationMasterProtocolService(conf)
-	return &AMRMClient{applicationAttemptId: applicationAttemptId, client: c}, err
+	return &AMRMClient{applicationAttemptId: applicationAttemptId, client: c, conf: conf}, err
 }
 
 func (c *AMRMClient) RegisterApplicationMaster(host string, port int32, url string) error {
 	request := hadoop_yarn.RegisterApplicationMasterRequestProto{Host: &host, RpcPort: &port, TrackingUrl: &url, ApplicationAttemptId: c.applicationAttemptId}
 	response := hadoop_yarn.RegisterApplicationMasterResponseProto{}
-	return c.client.RegisterApplicationMaster(&request, &response)
+	err := c.client.RegisterApplicationMaster(&request, &response)
+
+	if err != nil {
+		return err
+	}
+
+	go c.periodicPingWithEmptyAllocate()
+	return nil
 }
 
 func (c *AMRMClient) FinishApplicationMaster(finalStatus *hadoop_yarn.FinalApplicationStatusProto, message string, url string) error {
@@ -105,4 +114,34 @@ func (c *AMRMClient) Allocate() (*hadoop_yarn.AllocateResponseProto, error) {
 	response := hadoop_yarn.AllocateResponseProto{}
 	err := c.client.Allocate(&request, &response)
 	return &response, err
+}
+
+//We need to periodically "ping" the Resource Manager in order to ensure the AM isn't timed out.
+func (c *AMRMClient) periodicPingWithEmptyAllocate() {
+	sleepIntervalMs, err := c.conf.GetInt(yarn_conf.RM_AM_EXPIRY_INTERVAL_MS, yarn_conf.DEFAULT_RM_AM_EXPIRY_INTERVAL_MS)
+
+	if err != nil {
+		log.Println("failed to read expiry configuration. ping routine will NOT run")
+		return
+	}
+
+	//keep the sleep interval shorter than the expiry timeout
+	sleepIntervalMs = sleepIntervalMs / 2
+
+	for {
+		log.Println("ping with empty allocate.")
+
+		//lock allocation requests
+		request := hadoop_yarn.AllocateRequestProto{ApplicationAttemptId: c.applicationAttemptId}
+		response := hadoop_yarn.AllocateResponseProto{}
+		err := c.client.Allocate(&request, &response)
+
+		if err == nil {
+			log.Println("allocate response(ping): ", response)
+		} else {
+			log.Println("ping allocate failed! Error: ", err)
+		}
+
+		time.Sleep(time.Duration(sleepIntervalMs) * time.Millisecond)
+	}
 }
