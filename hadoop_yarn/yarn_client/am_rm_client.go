@@ -54,8 +54,8 @@ func (c *AMRMClient) FinishApplicationMaster(finalStatus *hadoop_yarn.FinalAppli
 func (c *AMRMClient) ReleaseAssignedContainer(containerId *hadoop_yarn.ContainerIdProto) {
 	if containerId != nil {
 		allocationRequests.Lock()
+    defer allocationRequests.Unlock()
 		allocationRequests.releaseRequests[containerId] = true
-		allocationRequests.Unlock()
 	}
 }
 
@@ -79,6 +79,9 @@ func (c *AMRMClient) AddRequest(priority int32, resourceName string, capability 
 }
 
 func (c *AMRMClient) Allocate() (*hadoop_yarn.AllocateResponseProto, error) {
+  allocationRequests.Lock()
+  defer allocationRequests.Unlock()
+
 	// Increment responseId
 	c.responseId++
 	log.Println("ResponseId: ", c.responseId)
@@ -86,7 +89,6 @@ func (c *AMRMClient) Allocate() (*hadoop_yarn.AllocateResponseProto, error) {
 	asks := []*hadoop_yarn.ResourceRequestProto{}
 
 	// Set up resource-requests
-	allocationRequests.Lock()
 	for priority, requests := range allocationRequests.resourceRequests {
 		for host, request := range requests {
 			log.Println("priority: ", priority)
@@ -108,11 +110,11 @@ func (c *AMRMClient) Allocate() (*hadoop_yarn.AllocateResponseProto, error) {
 	// Clear
 	allocationRequests.resourceRequests = make(map[int32]map[string]*resource_to_request)
 	allocationRequests.releaseRequests = make(map[*hadoop_yarn.ContainerIdProto]bool)
-	allocationRequests.Unlock()
 
 	request := hadoop_yarn.AllocateRequestProto{ApplicationAttemptId: c.applicationAttemptId, Ask: asks, Release: releases, ResponseId: &c.responseId}
 	response := hadoop_yarn.AllocateResponseProto{}
 	err := c.client.Allocate(&request, &response)
+
 	return &response, err
 }
 
@@ -130,18 +132,26 @@ func (c *AMRMClient) periodicPingWithEmptyAllocate() {
 
 	for {
 		log.Println("ping with empty allocate.")
-
-		//lock allocation requests
-		request := hadoop_yarn.AllocateRequestProto{ApplicationAttemptId: c.applicationAttemptId}
-		response := hadoop_yarn.AllocateResponseProto{}
-		err := c.client.Allocate(&request, &response)
-
-		if err == nil {
-			log.Println("allocate response(ping): ", response)
-		} else {
-			log.Println("ping allocate failed! Error: ", err)
-		}
-
+	  c.sendPingRequest()
 		time.Sleep(time.Duration(sleepIntervalMs) * time.Millisecond)
 	}
 }
+
+func(c * AMRMClient) sendPingRequest() {
+  //ensure no other operations are in progress
+  allocationRequests.Lock()
+  defer allocationRequests.Unlock()
+
+  request := hadoop_yarn.AllocateRequestProto{ApplicationAttemptId: c.applicationAttemptId}
+  response := hadoop_yarn.AllocateResponseProto{}
+  err := c.client.Allocate(&request, &response)
+
+  if err == nil {
+    log.Println("allocate response(ping): ", response)
+  } else {
+    log.Println("ping allocate failed! Error: ", err)
+  }
+}
+
+
+
