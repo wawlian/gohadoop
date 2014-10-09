@@ -5,7 +5,6 @@ import (
 	yarn_conf "github.com/hortonworks/gohadoop/hadoop_yarn/conf"
 	"log"
 	"sync"
-	"time"
 )
 
 type AMRMClient struct {
@@ -35,14 +34,7 @@ func CreateAMRMClient(conf yarn_conf.YarnConfiguration, applicationAttemptId *ha
 func (c *AMRMClient) RegisterApplicationMaster(host string, port int32, url string) error {
 	request := hadoop_yarn.RegisterApplicationMasterRequestProto{Host: &host, RpcPort: &port, TrackingUrl: &url, ApplicationAttemptId: c.applicationAttemptId}
 	response := hadoop_yarn.RegisterApplicationMasterResponseProto{}
-	err := c.client.RegisterApplicationMaster(&request, &response)
-
-	if err != nil {
-		return err
-	}
-
-	go c.periodicPingWithEmptyAllocate()
-	return nil
+	return c.client.RegisterApplicationMaster(&request, &response)
 }
 
 func (c *AMRMClient) FinishApplicationMaster(finalStatus *hadoop_yarn.FinalApplicationStatusProto, message string, url string) error {
@@ -54,7 +46,7 @@ func (c *AMRMClient) FinishApplicationMaster(finalStatus *hadoop_yarn.FinalAppli
 func (c *AMRMClient) ReleaseAssignedContainer(containerId *hadoop_yarn.ContainerIdProto) {
 	if containerId != nil {
 		allocationRequests.Lock()
-    defer allocationRequests.Unlock()
+		defer allocationRequests.Unlock()
 		allocationRequests.releaseRequests[containerId] = true
 	}
 }
@@ -79,12 +71,11 @@ func (c *AMRMClient) AddRequest(priority int32, resourceName string, capability 
 }
 
 func (c *AMRMClient) Allocate() (*hadoop_yarn.AllocateResponseProto, error) {
-  allocationRequests.Lock()
-  defer allocationRequests.Unlock()
+	allocationRequests.Lock()
+	defer allocationRequests.Unlock()
 
 	// Increment responseId
 	c.responseId++
-	log.Println("ResponseId: ", c.responseId)
 
 	asks := []*hadoop_yarn.ResourceRequestProto{}
 
@@ -105,7 +96,9 @@ func (c *AMRMClient) Allocate() (*hadoop_yarn.AllocateResponseProto, error) {
 		releases = append(releases, containerId)
 	}
 
-	log.Printf("AMRMClient.Allocate #asks: %d #releases: %d", len(asks), len(releases))
+	if len(asks) > 0 || len(releases) > 0 {
+		log.Printf("AMRMClient.Allocate #asks: %d #releases: %d", len(asks), len(releases))
+	}
 
 	// Clear
 	allocationRequests.resourceRequests = make(map[int32]map[string]*resource_to_request)
@@ -117,41 +110,3 @@ func (c *AMRMClient) Allocate() (*hadoop_yarn.AllocateResponseProto, error) {
 
 	return &response, err
 }
-
-//We need to periodically "ping" the Resource Manager in order to ensure the AM isn't timed out.
-func (c *AMRMClient) periodicPingWithEmptyAllocate() {
-	sleepIntervalMs, err := c.conf.GetInt(yarn_conf.RM_AM_EXPIRY_INTERVAL_MS, yarn_conf.DEFAULT_RM_AM_EXPIRY_INTERVAL_MS)
-
-	if err != nil {
-		log.Println("failed to read expiry configuration. ping routine will NOT run")
-		return
-	}
-
-	//keep the sleep interval shorter than the expiry timeout
-	sleepIntervalMs = sleepIntervalMs / 2
-
-	for {
-		log.Println("ping with empty allocate.")
-	  c.sendPingRequest()
-		time.Sleep(time.Duration(sleepIntervalMs) * time.Millisecond)
-	}
-}
-
-func(c * AMRMClient) sendPingRequest() {
-  //ensure no other operations are in progress
-  allocationRequests.Lock()
-  defer allocationRequests.Unlock()
-
-  request := hadoop_yarn.AllocateRequestProto{ApplicationAttemptId: c.applicationAttemptId}
-  response := hadoop_yarn.AllocateResponseProto{}
-  err := c.client.Allocate(&request, &response)
-
-  if err == nil {
-    log.Println("allocate response(ping): ", response)
-  } else {
-    log.Println("ping allocate failed! Error: ", err)
-  }
-}
-
-
-
