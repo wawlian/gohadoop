@@ -1,10 +1,10 @@
 package security
 
 import (
-	"github.com/hortonworks/gohadoop/hadoop_common"
-	"log"
-	"os/user"
-	"sync"
+  "github.com/hortonworks/gohadoop/hadoop_common"
+  "log"
+  "os/user"
+  "sync"
 )
 
 /** a (very) basic UserGroupInformation implementation for storing user data/tokens,
@@ -12,9 +12,9 @@ import (
 */
 
 type UserGroupInformation struct {
-	rwMutex    sync.RWMutex
-	userInfo   *hadoop_common.UserInformationProto
-	userTokens []*hadoop_common.TokenProto
+  rwMutex    sync.RWMutex
+  userInfo   *hadoop_common.UserInformationProto
+  userTokens map[string]*hadoop_common.TokenProto
 }
 
 var once sync.Once
@@ -22,62 +22,75 @@ var currentUserGroupInformation *UserGroupInformation
 var maxTokens = 16
 
 func CreateCurrentUserInfoProto() (*hadoop_common.UserInformationProto, error) {
-	// Figure the current user-name
-	var username string
-	if currentUser, err := user.Current(); err != nil {
-		log.Fatal("user.Current", err)
-		return nil, err
-	} else {
-		username = currentUser.Username
-	}
+  // Figure the current user-name
+  var username string
+  if currentUser, err := user.Current(); err != nil {
+    log.Fatal("user.Current", err)
+    return nil, err
+  } else {
+    username = currentUser.Username
+  }
 
-	return &hadoop_common.UserInformationProto{EffectiveUser: nil, RealUser: &username}, nil
+  return &hadoop_common.UserInformationProto{EffectiveUser: nil, RealUser: &username}, nil
 }
 
-func Allocate(userInfo *hadoop_common.UserInformationProto, userTokens []*hadoop_common.TokenProto) *UserGroupInformation {
-	ugi := new(UserGroupInformation)
+func Allocate(userInfo *hadoop_common.UserInformationProto, userTokens map[string]*hadoop_common.TokenProto) *UserGroupInformation {
+  ugi := new(UserGroupInformation)
 
-	if userInfo != nil {
-		ugi.userInfo = userInfo
-	} else {
-		currentUserInfo, _ := CreateCurrentUserInfoProto()
-		ugi.userInfo = currentUserInfo
-	}
+  if userInfo != nil {
+    ugi.userInfo = userInfo
+  } else {
+    currentUserInfo, _ := CreateCurrentUserInfoProto()
+    ugi.userInfo = currentUserInfo
+  }
 
-	if userTokens != nil {
-		ugi.userTokens = userTokens
-	} else {
-		ugi.userTokens = make([]*hadoop_common.TokenProto, 0, maxTokens) //empty, with room for maxTokens tokens.
-	}
+  if userTokens != nil {
+    ugi.userTokens = userTokens
+  } else {
+    ugi.userTokens = make(map[string]*hadoop_common.TokenProto)//empty, with room for maxTokens tokens.
+  }
 
-	return ugi
+  return ugi
 }
 
 func initializeCurrentUser() {
-	once.Do(func() {
-		currentUserGroupInformation = Allocate(nil, nil)
-	})
+  once.Do(func() {
+    currentUserGroupInformation = Allocate(nil, nil)
+  })
 }
 
 func (ugi *UserGroupInformation) GetUserInformation() *hadoop_common.UserInformationProto {
-	return ugi.userInfo
+  return ugi.userInfo
 }
 
-func (ugi *UserGroupInformation) GetUserTokens() []*hadoop_common.TokenProto {
-	return ugi.userTokens
+func (ugi *UserGroupInformation) GetUserTokens() map[string]*hadoop_common.TokenProto {
+  return ugi.userTokens
+}
+
+func (ugi *UserGroupInformation) AddUserTokenWithAlias(alias string, token *hadoop_common.TokenProto) {
+  if token == nil {
+    log.Fatal("supplied token is nil!")
+    return
+  }
+
+  if length := len(ugi.userTokens); length < maxTokens {
+    ugi.userTokens[alias] = token
+  } else {
+    log.Fatal("user already has maxTokens:", maxTokens)
+  }
 }
 
 func (ugi *UserGroupInformation) AddUserToken(token *hadoop_common.TokenProto) {
-	if length := len(ugi.userTokens); length < maxTokens {
-		//ref: http://blog.golang.org/slices
-		ugi.userTokens = append(ugi.userTokens, token)
-	} else {
-		log.Fatal("user already has maxTokens:", maxTokens)
-	}
+  if token == nil {
+    log.Fatal("supplied token is nil!")
+    return
+  }
+
+  ugi.AddUserTokenWithAlias(token.GetService(), token)
 }
 
 func GetCurrentUser() *UserGroupInformation {
-	initializeCurrentUser()
+  initializeCurrentUser()
 
-	return currentUserGroupInformation
+  return currentUserGroupInformation
 }

@@ -93,11 +93,10 @@ func findUsableTokenForService(service string) (*hadoop_common.TokenProto, bool)
 		return nil, false
 	}
 
-	for _, token := range userTokens {
-		if token.GetService() == service {
-			return token, true
-		}
-	}
+  token := userTokens[service]
+  if token != nil {
+    return token, true
+  }
 
 	return nil, false
 }
