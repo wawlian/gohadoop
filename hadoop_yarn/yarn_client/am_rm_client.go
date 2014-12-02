@@ -1,10 +1,11 @@
 package yarn_client
 
 import (
-  "fmt"
-  "log"
-  "sync"
-  "github.com/hortonworks/gohadoop/hadoop_common/security"
+	"fmt"
+	"log"
+	"sync"
+
+	"github.com/hortonworks/gohadoop/hadoop_common/security"
 	"github.com/hortonworks/gohadoop/hadoop_yarn"
 	yarn_conf "github.com/hortonworks/gohadoop/hadoop_yarn/conf"
 )
@@ -110,20 +111,19 @@ func (c *AMRMClient) Allocate() (*hadoop_yarn.AllocateResponseProto, error) {
 	response := hadoop_yarn.AllocateResponseProto{}
 	err := c.client.Allocate(&request, &response)
 
-  if err == nil {
-    for _, nmToken := range response.GetNmTokens() {
-      if nmToken != nil {
-        log.Printf("saving nm token : %v", nmToken)
+	if err == nil {
+		for _, nmToken := range response.GetNmTokens() {
+			if nmToken != nil {
+				log.Printf("saving nm token : %v", nmToken)
 
-        savedNmToken := *(nmToken.Token)
-        //service is already available in the nmToken. But, it is
-        serviceStr := fmt.Sprintf("%s%s%d", *nmToken.NodeId.Host, ":", *nmToken.NodeId.Port)
-        savedNmToken.Service = &serviceStr
-        log.Printf("saving token %v for service %v", &savedNmToken, serviceStr)
-        security.GetCurrentUser().AddUserTokenWithAlias(serviceStr, &savedNmToken)
-      }
-    }
-  }
+				savedNmToken := *(nmToken.Token)
+				serviceStr := fmt.Sprintf("%s%s%d", *nmToken.NodeId.Host, ":", *nmToken.NodeId.Port)
+				savedNmToken.Service = &serviceStr
+				log.Printf("saving token %v for service %v", &savedNmToken, serviceStr)
+				security.GetCurrentUser().AddUserTokenWithAlias(serviceStr, &savedNmToken)
+			}
+		}
+	}
 
 	return &response, err
 }
