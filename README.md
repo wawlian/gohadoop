@@ -5,7 +5,7 @@ gohadoop is native go clients for Apache Hadoop YARN.
 
 It includes an early version of Hadoop IPC client and requisite YARN client libraries to implement YARN applications completely in go (both YARN application-client and application-master).
 
-###Notes: 
+### Notes: 
 * Set HADOOP_CONF_DIR environment variable, and ensure the conf directory contains both *-default.xml and *-site.xml files.
 * hadoop_yarn/examples/dist_shell is an example go YARN application: client.go is the submission client and applicationmaster.go is the application-master. 
 
