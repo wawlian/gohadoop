@@ -2,17 +2,18 @@ package ipc
 
 import (
 	"bytes"
-	"code.google.com/p/goprotobuf/proto"
 	"errors"
 	"fmt"
-	"github.com/hortonworks/gohadoop"
-	"github.com/hortonworks/gohadoop/hadoop_common"
-	"github.com/hortonworks/gohadoop/hadoop_common/security"
-	"github.com/nu7hatch/gouuid"
 	"log"
 	"net"
 	"strings"
 	"sync"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/hortonworks/gohadoop"
+	"github.com/hortonworks/gohadoop/hadoop_common"
+	"github.com/hortonworks/gohadoop/hadoop_common/security"
+	"github.com/nu7hatch/gouuid"
 )
 
 type Client struct {
@@ -381,7 +382,6 @@ func (c *Client) readResponse(conn *connection, rpcCall *call) error {
 		// Parse RpcResponseWrapper
 		_, err = readDelimited(responseBytes[off:], rpcCall.response)
 	} else {
-		log.Println("RPC failed with status: ", rpcResponseHeaderProto.Status.String())
 		errorDetails := [4]string{rpcResponseHeaderProto.Status.String(), "ServerDidNotSetExceptionClassName", "ServerDidNotSetErrorMsg", "ServerDidNotSetErrorDetail"}
 		if rpcResponseHeaderProto.ExceptionClassName != nil {
 			errorDetails[0] = *rpcResponseHeaderProto.ExceptionClassName
@@ -393,6 +393,8 @@ func (c *Client) readResponse(conn *connection, rpcCall *call) error {
 			errorDetails[2] = rpcResponseHeaderProto.ErrorDetail.String()
 		}
 		err = errors.New(strings.Join(errorDetails[:], ":"))
+
+		log.Println("RPC failed with status: ", err.Error())
 	}
 	return err
 }

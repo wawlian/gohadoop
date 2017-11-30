@@ -5,8 +5,9 @@ import (
 )
 
 const (
-	YARN_DEFAULT = "yarn-default.xml"
+	//YARN_DEFAULT = "yarn-default.xml"
 	YARN_SITE    = "yarn-site.xml"
+	YARN_DEFAULT = YARN_SITE
 )
 
 const (

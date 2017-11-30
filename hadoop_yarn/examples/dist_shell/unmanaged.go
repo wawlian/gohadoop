@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"time"
 
@@ -121,9 +122,12 @@ func main() {
 
 		// Try to get containers now...
 		allocateResponse, err = rmClient.Allocate()
-		if err == nil {
-			log.Println("allocateResponse: ", *allocateResponse)
+		if err != nil {
+			log.Printf("rmClient.Allocate error: %v, trying ...", err)
+			continue
 		}
+		bys, _ := json.Marshal(*allocateResponse)
+		log.Println("allocateResponse: ", string(bys))
 
 		for _, container := range allocateResponse.AllocatedContainers {
 			allocatedContainers[numAllocatedContainers] = container
