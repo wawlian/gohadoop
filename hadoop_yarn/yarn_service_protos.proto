@@ -47,13 +47,13 @@ message RegisterApplicationMasterResponseProto {
   repeated ContainerProto containers_from_previous_attempts = 4;
   optional string queue = 5;
   repeated NMTokenProto nm_tokens_from_previous_attempts = 6;
+  repeated SchedulerResourceTypes scheduler_resource_types = 7;
 }
 
 message FinishApplicationMasterRequestProto {
   optional string diagnostics = 1;
   optional string tracking_url = 2;
   optional FinalApplicationStatusProto final_application_status = 3;
-  optional ApplicationAttemptIdProto application_attempt_id = 4;
 }
 
 message FinishApplicationMasterResponseProto {
@@ -87,6 +87,11 @@ message AllocateResponseProto {
   repeated ContainerResourceIncreaseProto increased_containers = 10;
   repeated ContainerResourceDecreaseProto decreased_containers = 11;
   optional hadoop.common.TokenProto am_rm_token = 12;
+}
+
+enum SchedulerResourceTypes {
+  MEMORY = 0;
+  CPU = 1;
 }
 
 //////////////////////////////////////////////////////
@@ -189,6 +194,27 @@ message GetQueueUserAclsInfoResponseProto {
   repeated QueueUserACLInfoProto queueUserAcls = 1;
 }
 
+message GetNodesToLabelsRequestProto {
+}
+
+message GetNodesToLabelsResponseProto {
+  repeated NodeIdToLabelsInfoProto nodeToLabels = 1;
+}
+
+message GetLabelsToNodesRequestProto {
+  repeated string nodeLabels = 1;
+}
+
+message GetLabelsToNodesResponseProto {
+  repeated LabelsToNodeIdsProto labelsToNodes = 1;
+}
+
+message GetClusterNodeLabelsRequestProto {
+}
+
+message GetClusterNodeLabelsResponseProto {
+  repeated NodeLabelProto nodeLabels = 1;
+}
 
 //////////////////////////////////////////////////////
 /////// client_NM_Protocol ///////////////////////////
@@ -197,7 +223,6 @@ message GetQueueUserAclsInfoResponseProto {
 message StartContainerRequestProto {
   optional ContainerLaunchContextProto container_launch_context = 1;
   optional hadoop.common.TokenProto container_token = 2;
-  optional ContainerProto container = 3;
 }
 
 message StartContainerResponseProto {
@@ -287,4 +312,64 @@ message GetContainersRequestProto {
 
 message GetContainersResponseProto {
   repeated ContainerReportProto containers = 1;
+}
+
+//////////////////////////////////////////////////////
+/////// client_SCM_Protocol //////////////////////////
+//////////////////////////////////////////////////////
+
+message UseSharedCacheResourceRequestProto {
+  optional ApplicationIdProto applicationId = 1;
+  optional string resourceKey = 2;
+}
+
+message UseSharedCacheResourceResponseProto {
+  optional string path = 1;
+}
+
+message ReleaseSharedCacheResourceRequestProto {
+  optional ApplicationIdProto applicationId = 1;
+  optional string resourceKey = 2;
+}
+
+message ReleaseSharedCacheResourceResponseProto {
+}
+
+//////////////////////////////////////////////////////
+//  reservation_protocol
+//////////////////////////////////////////////////////
+
+message ReservationSubmissionRequestProto {
+  optional string queue = 1;
+  optional ReservationDefinitionProto reservation_definition = 2;
+}
+
+message ReservationSubmissionResponseProto {
+    optional ReservationIdProto reservation_id = 1;
+}
+
+message ReservationUpdateRequestProto {
+  optional ReservationDefinitionProto reservation_definition = 1;
+  optional ReservationIdProto reservation_id = 2;
+}
+
+message ReservationUpdateResponseProto {   
+}
+
+message ReservationDeleteRequestProto {
+  optional ReservationIdProto reservation_id = 1;
+}
+
+message ReservationDeleteResponseProto {
+}
+
+//////////////////////////////////////////////////////
+/////// SCM_Admin_Protocol //////////////////////////
+//////////////////////////////////////////////////////
+
+message RunSharedCacheCleanerTaskRequestProto {
+}
+
+message RunSharedCacheCleanerTaskResponseProto {
+  optional bool accepted = 1;
 }

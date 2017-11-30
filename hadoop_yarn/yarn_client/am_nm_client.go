@@ -14,7 +14,14 @@ func CreateAMNMClient(host string, port int) (*AMNMClient, error) {
 }
 
 func (c *AMNMClient) StartContainer(container *hadoop_yarn.ContainerProto, containerLaunchContext *hadoop_yarn.ContainerLaunchContextProto) error {
-	request := hadoop_yarn.StartContainersRequestProto{StartContainerRequest: []*hadoop_yarn.StartContainerRequestProto{&hadoop_yarn.StartContainerRequestProto{ContainerLaunchContext: containerLaunchContext, Container: container, ContainerToken: container.GetContainerToken()}}}
+	request := hadoop_yarn.StartContainersRequestProto{
+		StartContainerRequest: []*hadoop_yarn.StartContainerRequestProto{&hadoop_yarn.StartContainerRequestProto{
+			ContainerLaunchContext: containerLaunchContext,
+			// Container:              container,
+			ContainerToken: container.GetContainerToken(),
+		}},
+	}
+
 	response := hadoop_yarn.StartContainersResponseProto{}
 	return c.client.StartContainers(&request, &response)
 }
