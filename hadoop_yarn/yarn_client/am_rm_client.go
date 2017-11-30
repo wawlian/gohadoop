@@ -30,7 +30,7 @@ var allocationRequests = struct {
 
 func CreateAMRMClient(conf yarn_conf.YarnConfiguration) (*AMRMClient, error) {
 	c, err := hadoop_yarn.DialApplicationMasterProtocolService(conf)
-	return &AMRMClient{client: c, conf: conf}, err
+	return &AMRMClient{client: c, responseId: -1, conf: conf}, err
 }
 
 func (c *AMRMClient) RegisterApplicationMaster(host string, port int32, url string) error {
