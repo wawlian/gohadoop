@@ -102,7 +102,8 @@ func main() {
 	// Add resource requests
 	const numContainers = int32(1)
 	memory := int32(128)
-	resource := hadoop_yarn.ResourceProto{Memory: &memory}
+	vcores := int32(1)
+	resource := hadoop_yarn.ResourceProto{Memory: &memory, VirtualCores: &vcores}
 	rmClient.AddRequest(1, "*", &resource, numContainers)
 
 	// Now call ResourceManager.allocate
