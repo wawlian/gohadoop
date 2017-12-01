@@ -16,6 +16,8 @@ const (
 	RM_ADDRESS                       = RM_PREFIX + "address"
 	DEFAULT_RM_ADDRESS               = "0.0.0.0:8032"
 	RM_SCHEDULER_ADDRESS             = RM_PREFIX + "scheduler.address"
+	DEFAULT_RM_ADMIN_ADDRESS         = "0.0.0.0:8033"
+	RM_ADMIN_ADDRESS                 = RM_PREFIX + "admin.address"
 	DEFAULT_RM_SCHEDULER_ADDRESS     = "0.0.0.0:8030"
 	RM_AM_EXPIRY_INTERVAL_MS         = YARN_PREFIX + "am.liveness-monitor.expiry-interval-ms"
 	DEFAULT_RM_AM_EXPIRY_INTERVAL_MS = 600000
@@ -28,8 +30,10 @@ type yarn_configuration struct {
 type YarnConfiguration interface {
 	GetRMAddress() (string, error)
 	GetRMSchedulerAddress() (string, error)
+	GetRMAdminAddress() (string, error)
 
 	SetRMAddress(address string) error
+	SetRMAdminAddress(address string) error
 	SetRMSchedulerAddress(address string) error
 
 	Get(key string, defaultValue string) (string, error)
@@ -51,6 +55,10 @@ func (yarn_conf *yarn_configuration) GetRMAddress() (string, error) {
 	return yarn_conf.conf.Get(RM_ADDRESS, DEFAULT_RM_ADDRESS)
 }
 
+func (yarn_conf *yarn_configuration) GetRMAdminAddress() (string, error) {
+	return yarn_conf.conf.Get(RM_ADMIN_ADDRESS, DEFAULT_RM_ADDRESS)
+}
+
 func (yarn_conf *yarn_configuration) GetRMSchedulerAddress() (string, error) {
 	return yarn_conf.conf.Get(RM_SCHEDULER_ADDRESS, DEFAULT_RM_SCHEDULER_ADDRESS)
 }
@@ -65,6 +73,10 @@ func (yarn_conf *yarn_configuration) SetInt(key string, value int) error {
 
 func (yarn_conf *yarn_configuration) SetRMAddress(address string) error {
 	return yarn_conf.conf.Set(RM_ADDRESS, address)
+}
+
+func (yarn_conf *yarn_configuration) SetRMAdminAddress(address string) error {
+	return yarn_conf.conf.Set(RM_ADMIN_ADDRESS, address)
 }
 
 func (yarn_conf *yarn_configuration) SetRMSchedulerAddress(address string) error {

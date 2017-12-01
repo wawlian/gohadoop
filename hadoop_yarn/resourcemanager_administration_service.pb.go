@@ -89,7 +89,7 @@ func (c *ResourceManagerAdministrationProtocolServiceClient) CheckForDecommissio
 func DialResourceManagerAdministrationProtocolService(conf yarn_conf.YarnConfiguration) (ResourceManagerAdministrationProtocolService, error) {
 	clientId, _ := uuid.NewV4()
 	ugi, _ := gohadoop.CreateSimpleUGIProto()
-	serverAddress, _ := conf.GetRMAddress()
-	c := &hadoop_ipc_client.Client{ClientId: clientId, Ugi: ugi, ServerAddress: serverAddress}
+	adminServerAddress, _ := conf.GetRMAdminAddress()
+	c := &hadoop_ipc_client.Client{ClientId: clientId, Ugi: ugi, ServerAddress: adminServerAddress}
 	return &ResourceManagerAdministrationProtocolServiceClient{c}, nil
 }
