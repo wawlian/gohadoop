@@ -18,10 +18,11 @@ func main() {
 
 	// Some useful information
 	var (
-		host     string = "node004"
-		port     int32  = 8040
-		memoryMB int32  = 8192
-		vcores   int32  = 4
+		host string = "node004"
+		//TODO: Get port of node from RM
+		port     int32 = 31233
+		memoryMB int32 = 8192
+		vcores   int32 = 4
 	)
 
 	// Update node resource
