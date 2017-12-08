@@ -1,12 +1,11 @@
 package main
 
-
 import (
 	"log"
 
+	"github.com/hortonworks/gohadoop/hadoop_yarn"
 	"github.com/hortonworks/gohadoop/hadoop_yarn/conf"
 	"github.com/hortonworks/gohadoop/hadoop_yarn/yarn_client"
-	"github.com/hortonworks/gohadoop/hadoop_yarn"
 )
 
 func main() {
@@ -22,7 +21,7 @@ func main() {
 
 	if err != nil {
 		log.Fatal("rmClient.UpdateNodeResource: ", err)
-	}else {
+	} else {
 		nodeStatus := resp.NodeStatus
 		log.Println(nodeStatus)
 	}

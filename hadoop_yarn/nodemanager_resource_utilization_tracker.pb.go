@@ -26,9 +26,9 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
-func init() { proto.RegisterFile("nodemanager_resource_utilization_tracker.proto", fileDescriptor11) }
+func init() { proto.RegisterFile("nodemanager_resource_utilization_tracker.proto", fileDescriptor10) }
 
-var fileDescriptor11 = []byte{
+var fileDescriptor10 = []byte{
 	// 197 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x8e, 0x31, 0x8e, 0xc2, 0x30,
 	0x10, 0x45, 0xe5, 0xd6, 0xdb, 0xa5, 0xd8, 0x22, 0xda, 0x66, 0xab, 0x6d, 0x16, 0x17, 0x9c, 0x00,

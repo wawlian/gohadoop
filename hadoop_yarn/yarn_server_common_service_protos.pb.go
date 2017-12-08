@@ -39,7 +39,7 @@ func (*ResourceUtilizationRequestProto) Descriptor() ([]byte, []int) { return fi
 
 type ResourceUtilizationResponseProto struct {
 	NodeStatus       *NodeStatusProto `protobuf:"bytes,1,opt,name=node_status,json=nodeStatus" json:"node_status,omitempty"`
-	XXX_unrecognized []byte                        `json:"-"`
+	XXX_unrecognized []byte           `json:"-"`
 }
 
 func (m *ResourceUtilizationResponseProto) Reset()         { *m = ResourceUtilizationResponseProto{} }
@@ -61,9 +61,9 @@ func init() {
 	proto.RegisterType((*ResourceUtilizationResponseProto)(nil), "hadoop.yarn.ResourceUtilizationResponseProto")
 }
 
-func init() { proto.RegisterFile("yarn_server_common_service_protos.proto", fileDescriptor10) }
+func init() { proto.RegisterFile("yarn_server_common_service_protos.proto", fileDescriptor11) }
 
-var fileDescriptor10 = []byte{
+var fileDescriptor11 = []byte{
 	// 203 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x8f, 0xb1, 0x6a, 0xc4, 0x30,
 	0x0c, 0x86, 0xf1, 0xea, 0x6c, 0x99, 0x4a, 0x49, 0x49, 0xda, 0xa5, 0x9d, 0x3c, 0x74, 0xef, 0x92,

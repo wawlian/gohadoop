@@ -36,5 +36,5 @@ func DialNodeManagerResourceUtilizationTrackerService(conf yarn_conf.YarnConfigu
 	ugi, _ := gohadoop.CreateSimpleUGIProto()
 	serviceAddress, _ := conf.GetNMResourceUtilizationTrackerAddress()
 	c := &hadoop_ipc_client.Client{ClientId: clientId, Ugi: ugi, ServerAddress: serviceAddress}
-	return &NodeManagerResourceUtilizationTrackerServiceClient{ c }, nil
+	return &NodeManagerResourceUtilizationTrackerServiceClient{c}, nil
 }

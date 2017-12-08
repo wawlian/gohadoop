@@ -13,7 +13,7 @@ const (
 const (
 	YARN_PREFIX                      = "yarn."
 	RM_PREFIX                        = YARN_PREFIX + "resourcemanager."
-	NM_PREFIX						 = YARN_PREFIX + "nodemanager."
+	NM_PREFIX                        = YARN_PREFIX + "nodemanager."
 	RM_ADDRESS                       = RM_PREFIX + "address"
 	DEFAULT_RM_ADDRESS               = "0.0.0.0:8032"
 	RM_SCHEDULER_ADDRESS             = RM_PREFIX + "scheduler.address"
@@ -23,7 +23,7 @@ const (
 	RM_AM_EXPIRY_INTERVAL_MS         = YARN_PREFIX + "am.liveness-monitor.expiry-interval-ms"
 	DEFAULT_RM_AM_EXPIRY_INTERVAL_MS = 600000
 	DEFAULT_NM_UTIL_TRACKER_ADDRESS  = "node005:8055"
-	NM_UTIL_TRACKER_ADDRESS			 = NM_PREFIX + "nm.util.tracker.address"
+	NM_UTIL_TRACKER_ADDRESS          = NM_PREFIX + "nm.util.tracker.address"
 )
 
 type yarn_configuration struct {

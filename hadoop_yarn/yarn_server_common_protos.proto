@@ -23,6 +23,7 @@ option java_generate_equals_and_hash = true;
 package hadoop.yarn;
 
 import "yarn_protos.proto";
+import "Security.proto";
 
 enum NodeActionProto {
   NORMAL = 0;
