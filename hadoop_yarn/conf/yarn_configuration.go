@@ -26,6 +26,8 @@ const (
 	NM_UTIL_TRACKER_ADDRESS          = NM_PREFIX + "nm.util.tracker.address"
 	NM_ADDRESS                       = NM_PREFIX + "address"
 	DEFAULT_NM_ADDRESS               = "0.0.0.0:8050"
+	VCORE_NUM                        = NM_PREFIX + "resource.cpu-vcores"
+	VCORE_NUM_DEFAULT                = 8
 )
 
 type yarn_configuration struct {
